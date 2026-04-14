@@ -1,10 +1,22 @@
 package utmn.checkmates.server.network.packet.input;
 
+import java.net.InetAddress;
+
 public class ServerConnectionPacket extends InputPacket implements SessionPacket{
+    private int sessionId;
     private String playerName;
 
-    public ServerConnectionPacket(int sessionId, String playerName) {
+    public ServerConnectionPacket(InetAddress sourceAddress, int sessionId, String playerName) {
+        super(sourceAddress);
+        this.sessionId = sessionId;
         this.playerName = playerName;
+    }
+
+    public ServerConnectionPacket(InetAddress sourceAddress) {
+        super(sourceAddress);
+    }
+
+    public ServerConnectionPacket() {
     }
 
     public String getPlayerName() {
@@ -17,11 +29,11 @@ public class ServerConnectionPacket extends InputPacket implements SessionPacket
 
     @Override
     public int getSessionId() {
-        return 0;
+        return sessionId;
     }
 
     @Override
     public void setSessionId(int id) {
-
+        this.sessionId = id;
     }
 }

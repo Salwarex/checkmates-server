@@ -1,31 +1,24 @@
 package utmn.checkmates.server.network.packet;
 
-import java.net.Inet4Address;
-import java.net.Socket;
-import java.net.SocketAddress;
+import utmn.checkmates.server.Application;
+import utmn.checkmates.server.utility.Jsonable;
+import utmn.checkmates.server.utility.logger.Logger;
 
-public abstract class Packet {
-    private SocketAddress senderAddress;
-    private SocketAddress destinationAddress;
 
-    public Packet(SocketAddress senderAddress, SocketAddress destinationAddress) {
-        this.senderAddress = senderAddress;
-        this.destinationAddress = destinationAddress;
+public abstract class Packet implements Jsonable {
+    public Packet() {
+        Logger.log(this.getClass().getSimpleName(),
+                "Constructor",
+                "Объект пакета инициализирован"
+        );
     }
 
-    public SocketAddress getSenderAddress() {
-        return senderAddress;
-    }
-
-    public void setSenderAddress(SocketAddress senderAddress) {
-        this.senderAddress = senderAddress;
-    }
-
-    public SocketAddress getDestinationAddress() {
-        return destinationAddress;
-    }
-
-    public void setDestinationAddress(SocketAddress destinationAddress) {
-        this.destinationAddress = destinationAddress;
+    @Override
+    public String toJson() {
+        Logger.log(this.getClass().getSimpleName(),
+                "toJson",
+                "Объект преобразовается в JSON"
+        );
+        return Application.getGson().toJson(this);
     }
 }

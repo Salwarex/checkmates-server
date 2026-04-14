@@ -1,4 +1,23 @@
 package utmn.checkmates.server.network.packet.output;
 
+import java.net.InetAddress;
+import java.util.List;
+
 public class GameStartPacket extends OutputPacket{
+    private int time;
+    public GameStartPacket(List<InetAddress> destinationAddress, int time) {
+        super(destinationAddress);
+        this.time = time;
+    }
+
+    public GameStartPacket() {
+    }
+
+    public int getTime() {
+        return time;
+    }
+
+    public void setTime(int time) {
+        this.time = time;
+    }
 }

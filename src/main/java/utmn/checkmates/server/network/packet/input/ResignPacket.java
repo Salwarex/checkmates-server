@@ -1,26 +1,12 @@
 package utmn.checkmates.server.network.packet.input;
 
-public class ResignPacket extends InputPacket implements ClientRecognizePacket{
-    public ResignPacket(int sessionId) {
+import java.net.InetAddress;
+
+public class ResignPacket extends ClientSessionImplPacket{
+    public ResignPacket(InetAddress sourceAddress, int sessionId, int clientId) {
+        super(sourceAddress, sessionId, clientId);
     }
 
-    @Override
-    public int getSessionId() {
-        return 0;
-    }
-
-    @Override
-    public void setSessionId(int id) {
-
-    }
-
-    @Override
-    public int getClientId() {
-        return 0;
-    }
-
-    @Override
-    public void setClientId(int id) {
-
+    public ResignPacket() {
     }
 }

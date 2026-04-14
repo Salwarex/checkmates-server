@@ -1,27 +1,12 @@
 package utmn.checkmates.server.network.packet.input;
 
-public class DrawOfferPacket extends InputPacket implements ClientRecognizePacket{
-    public DrawOfferPacket(int sessionId) {
+import java.net.InetAddress;
 
+public class DrawOfferPacket extends ClientSessionImplPacket{
+    public DrawOfferPacket(InetAddress sourceAddress, int sessionId, int clientId) {
+        super(sourceAddress, sessionId, clientId);
     }
 
-    @Override
-    public int getClientId() {
-        return 0;
-    }
-
-    @Override
-    public void setClientId(int id) {
-
-    }
-
-    @Override
-    public int getSessionId() {
-        return 0;
-    }
-
-    @Override
-    public void setSessionId(int id) {
-
+    public DrawOfferPacket() {
     }
 }

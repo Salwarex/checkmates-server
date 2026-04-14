@@ -1,27 +1,33 @@
 package utmn.checkmates.server.network.packet.input;
 
-public class MovePacket extends InputPacket implements ClientRecognizePacket{
-    public MovePacket(int sessionId) {
+import java.net.InetAddress;
 
+public class MovePacket extends ClientSessionImplPacket{
+    private byte from;
+    private byte to;
+
+    public MovePacket(InetAddress sourceAddress, int sessionId, int clientId, byte from, byte to) {
+        super(sourceAddress, sessionId, clientId);
+        this.from = from;
+        this.to = to;
     }
 
-    @Override
-    public int getClientId() {
-        return 0;
+    public MovePacket() {
     }
 
-    @Override
-    public void setClientId(int id) {
-
+    public byte getFrom() {
+        return from;
     }
 
-    @Override
-    public int getSessionId() {
-        return 0;
+    public void setFrom(byte from) {
+        this.from = from;
     }
 
-    @Override
-    public void setSessionId(int id) {
+    public byte getTo() {
+        return to;
+    }
 
+    public void setTo(byte to) {
+        this.to = to;
     }
 }

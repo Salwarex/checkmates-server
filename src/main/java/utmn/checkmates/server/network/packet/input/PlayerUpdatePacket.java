@@ -1,27 +1,23 @@
 package utmn.checkmates.server.network.packet.input;
 
-public class PlayerUpdatePacket extends InputPacket implements ClientRecognizePacket{
-    public PlayerUpdatePacket(int sessionId) {
+import java.net.InetAddress;
 
+public class PlayerUpdatePacket extends ClientSessionImplPacket{
+    private boolean ready;
+
+    public PlayerUpdatePacket(InetAddress sourceAddress, int sessionId, int clientId, boolean ready) {
+        super(sourceAddress, sessionId, clientId);
+        this.ready = ready;
     }
 
-    @Override
-    public int getSessionId() {
-        return 0;
+    public PlayerUpdatePacket() {
     }
 
-    @Override
-    public void setSessionId(int id) {
-
+    public boolean isReady() {
+        return ready;
     }
 
-    @Override
-    public int getClientId() {
-        return 0;
-    }
-
-    @Override
-    public void setClientId(int id) {
-
+    public void setReady(boolean ready) {
+        this.ready = ready;
     }
 }

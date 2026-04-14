@@ -1,27 +1,23 @@
 package utmn.checkmates.server.network.packet.input;
 
-public class DrawResponsePacket extends InputPacket implements ClientRecognizePacket{
-    public DrawResponsePacket(int sessionId) {
+import java.net.InetAddress;
 
+public class DrawResponsePacket extends ClientSessionImplPacket{
+    private boolean agree;
+
+    public DrawResponsePacket(InetAddress sourceAddress, int sessionId, int clientId, boolean agree) {
+        super(sourceAddress, sessionId, clientId);
+        this.agree = agree;
     }
 
-    @Override
-    public int getClientId() {
-        return 0;
+    public DrawResponsePacket() {
     }
 
-    @Override
-    public void setClientId(int id) {
-
+    public boolean isAgree() {
+        return agree;
     }
 
-    @Override
-    public int getSessionId() {
-        return 0;
-    }
-
-    @Override
-    public void setSessionId(int id) {
-
+    public void setAgree(boolean agree) {
+        this.agree = agree;
     }
 }
