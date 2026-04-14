@@ -1,7 +1,27 @@
 package utmn.checkmates.server.network.packet.input;
 
-public class PlayerUpdatePacket extends SessionPacket{
+public class PlayerUpdatePacket extends InputPacket implements ClientRecognizePacket{
     public PlayerUpdatePacket(int sessionId) {
-        super(sessionId);
+
+    }
+
+    @Override
+    public int getSessionId() {
+        return 0;
+    }
+
+    @Override
+    public void setSessionId(int id) {
+
+    }
+
+    @Override
+    public int getClientId() {
+        return 0;
+    }
+
+    @Override
+    public void setClientId(int id) {
+
     }
 }

@@ -1,4 +1,4 @@
 package utmn.checkmates.server.network.packet.output;
 
-public class CreateSessionResponse implements OutputPacket{
+public class CreateSessionResponse extends OutputPacket{
 }

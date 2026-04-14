@@ -1,4 +1,4 @@
 package utmn.checkmates.server.network.packet.output;
 
-public class PingResponsePacket implements OutputPacket{
+public class PingResponsePacket extends OutputPacket{
 }

@@ -1,4 +1,4 @@
 package utmn.checkmates.server.network.packet.output;
 
-public class PausePacket implements OutputPacket{
+public class PausePacket extends OutputPacket{
 }

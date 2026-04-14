@@ -2,5 +2,5 @@ package utmn.checkmates.server.network.packet.output;
 
 import utmn.checkmates.server.network.packet.Packet;
 
-public interface OutputPacket extends Packet {
+public abstract class OutputPacket extends Packet {
 }

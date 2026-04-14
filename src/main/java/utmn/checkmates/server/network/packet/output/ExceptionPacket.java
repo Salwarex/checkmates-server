@@ -1,4 +1,4 @@
 package utmn.checkmates.server.network.packet.output;
 
-public class ExceptionPacket implements OutputPacket{
+public class ExceptionPacket extends OutputPacket{
 }
