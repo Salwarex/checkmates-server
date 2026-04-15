@@ -2,7 +2,6 @@ package utmn.checkmates.server.network.packet;
 
 import utmn.checkmates.server.network.packet.input.*;
 import utmn.checkmates.server.network.packet.output.*;
-import utmn.checkmates.server.utility.HandlingFunc;
 
 public enum PacketType {
 
