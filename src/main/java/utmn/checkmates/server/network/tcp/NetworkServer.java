@@ -62,7 +62,7 @@ public class NetworkServer{
                         BufferedOutputStream out = new BufferedOutputStream(clientSocket.getOutputStream());
 
                         NetworkTcp.InputMessage message = NetworkTcp.readNext(rawIn, in);
-                        PacketHandler.PacketSet set = PacketHandler.handle(message.type, message.json);
+                        PacketHandler.PacketSet set = PacketHandler.handle(clientSocket.getInetAddress(), message.type, message.json);
 
                         InputPacket inputPacket = set.getInput();
                         List<OutputPacket> outputPackets = set.getOutput();

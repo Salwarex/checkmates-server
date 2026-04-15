@@ -22,7 +22,7 @@ public class Logger {
 
     static {
         try{
-            initLogFilePath("Log_%s".formatted(LocalDateTime.now().format(LOG_DATE_TIME_FORMATTER)));
+            initLogFilePath("Log_%s.txt".formatted(LocalDateTime.now().format(LOG_DATE_TIME_FORMATTER)));
         }catch (Exception e){
             throw new RuntimeException("Can't init Logger system: %s".formatted(e));
         }

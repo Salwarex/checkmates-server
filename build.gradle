@@ -1,10 +1,11 @@
 plugins {
     id 'java'
+    id 'application'
     id("xyz.jpenilla.run-paper") version "2.3.1"
     id 'com.gradleup.shadow' version '8.3.1'
 }
 
-group = 'utmn.checkmates.server'
+group = 'utmn.checkmates'
 version = 'SNAPSHOT'
 
 repositories {
@@ -12,44 +13,54 @@ repositories {
 }
 
 dependencies {
-    testImplementation platform('org.junit:junit-bom:5.10.0')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
     implementation 'com.google.code.gson:gson:2.10.1'
+}
+
+application {
+    mainClass = 'utmn.checkmates.server.Application'
+}
+
+// Отключаем задачи application-плагина, которые конфликтуют с shadowJar
+tasks.named('distTar') { enabled = false }
+tasks.named('distZip') { enabled = false }
+tasks.named('startScripts') { enabled = false }
+tasks.named('jar') { enabled = false }  // если не нужен обычный jar
+
+// ========== SERVER JAR ==========
+tasks.named('shadowJar') {
+    archiveBaseName.set('checkmates-server')
+    archiveClassifier.set('')  // → checkmates-server-SNAPSHOT.jar
+    archiveVersion.set(version)
+
+    manifest {
+        attributes 'Main-Class': 'utmn.checkmates.server.Application'
+    }
+
+    relocate 'com.pengrad', 'utmn.checkmates.server.com.pengrad'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// ========== CLIENT JAR ==========
+tasks.register('clientShadowJar', com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+    archiveBaseName.set('checkmates-client')
+    archiveClassifier.set('')  // → checkmates-client-SNAPSHOT.jar
+    archiveVersion.set(version)
+
+    manifest {
+        attributes 'Main-Class': 'utmn.checkmates.client.Application'
+    }
+
+    from sourceSets.main.output
+    configurations = [project.configurations.runtimeClasspath]
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// Сборка обоих JAR при build
+tasks.named('build') {
+    dependsOn 'shadowJar', 'clientShadowJar'
 }
 
 test {
     useJUnitPlatform()
-}
-
-shadowJar {
-    archiveClassifier = ''
-
-    relocate 'com.pengrad', 'utmn.checkmates.server.com.pengrad'
-}
-
-def targetJavaVersion = 21
-java {
-    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
-    sourceCompatibility = javaVersion
-    targetCompatibility = javaVersion
-    if (JavaVersion.current() < javaVersion) {
-        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
-    }
-}
-
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-
-    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
-        options.release.set(targetJavaVersion)
-    }
-}
-
-processResources {
-    def props = [version: version]
-    inputs.properties props
-    filteringCharset 'UTF-8'
-    filesMatching('plugin.yml') {
-        expand props
-    }
 }

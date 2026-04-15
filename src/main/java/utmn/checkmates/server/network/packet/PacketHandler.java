@@ -10,10 +10,11 @@ import java.net.InetAddress;
 import java.util.List;
 
 public class PacketHandler {
-    public static PacketSet handle(byte messageType, String json)
+    public static PacketSet handle(InetAddress sourceAddress, byte messageType, String json)
             throws HandlingException{
         PacketType type = PacketType.get(true, messageType);
         InputPacket inputPacket = (InputPacket) Application.getGson().fromJson(json, type.getClazz());
+        inputPacket.setSourceAddress(sourceAddress);
         Logger.log("PacketHandler",
                 "handle",
                 "Получен входной пакет: %s%s".formatted(inputPacket.getClass().getSimpleName(), inputPacket.toJson())

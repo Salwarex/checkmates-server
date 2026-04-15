@@ -112,6 +112,7 @@ public class SessionConnectionsManager {
                         "Получено: type=%d, json=%s от %s".formatted(msg.type, msg.json, address));
 
                 PacketHandler.PacketSet set = PacketHandler.handle(
+                        address,
                         msg.type,
                         msg.json
                 );

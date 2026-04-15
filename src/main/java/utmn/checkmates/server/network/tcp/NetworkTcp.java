@@ -17,13 +17,25 @@ public class NetworkTcp {
                 "Ожидается чтение пакета...");
         //
 
-        if (in == null) return null;
+        if (in == null) {
+            Logger.log("NetworkTcp", "readNext",
+                    "IN = NULL");
+            return null;
+        }
 
         int typeInt = rawIn.read();
-        if (typeInt == -1) return null;
+        if (typeInt == -1) {
+            Logger.log("NetworkTcp", "readNext",
+                    "TYPEINT = -1");
+            return null;
+        }
 
         String json = in.readLine();
-        if (json == null) return null;
+        if (json == null) {
+            Logger.log("NetworkTcp", "readNext",
+                    "JSON = null");
+            return null;
+        }
 
         //
         Logger.log("NetworkTcp", "readNext",

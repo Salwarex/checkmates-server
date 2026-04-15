@@ -7,8 +7,8 @@ import java.net.InetAddress;
 import java.util.List;
 
 public abstract class OutputPacket extends Packet {
-    @Expose(serialize = false, deserialize = false)
-    private List<InetAddress> destinationAddresses;
+    //@Expose(serialize = false, deserialize = false)
+    private transient List<InetAddress> destinationAddresses;
 
     public OutputPacket(List<InetAddress> destinationAddresses) {
         this.destinationAddresses = destinationAddresses;

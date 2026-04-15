@@ -6,8 +6,8 @@ import utmn.checkmates.server.network.packet.Packet;
 import java.net.InetAddress;
 
 public abstract class InputPacket extends Packet {
-    @Expose(serialize = false, deserialize = false)
-    private InetAddress sourceAddress;
+    //@Expose(serialize = false, deserialize = false)
+    private transient InetAddress sourceAddress;
 
     public InputPacket(InetAddress sourceAddress) {
         this.sourceAddress = sourceAddress;
