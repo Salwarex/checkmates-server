@@ -79,6 +79,7 @@ public class SessionConnection implements AutoCloseable{
 
     public void setClientSocket(Socket clientSocket) throws IOException {
         this.clientSocket = clientSocket;
+        this.address = clientSocket.getInetAddress();
     }
 
     public void sendPacket(OutputPacket packet) throws IOException {

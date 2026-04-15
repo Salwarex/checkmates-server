@@ -20,6 +20,7 @@ import java.util.concurrent.*;
 public class SessionConnectionsManager {
     private final NetworkServer networkServer;
 
+    private int current = 0;
     private final ConcurrentMap<Integer, Session> sessions = new ConcurrentHashMap<>();
     private final ConcurrentMap<Socket, SessionConnection> connections = new ConcurrentHashMap<>();
 
@@ -39,7 +40,7 @@ public class SessionConnectionsManager {
         return true;
     }
 
-    public void openSessionConnection(ServerConnectionPacket connectionPacket, Socket clientSocket, InputStream rawIn, BufferedReader in, BufferedOutputStream out)
+    public SessionConnection openSessionConnection(ServerConnectionPacket connectionPacket, Socket clientSocket, InputStream rawIn, BufferedReader in, BufferedOutputStream out)
             throws IOException {
         Session session = sessions.get(connectionPacket.getSessionId());//обработать возможные ошибки
 
@@ -58,6 +59,7 @@ public class SessionConnectionsManager {
         connectionChecker.update(connection);
 
         clientPool.submit(() -> handleConnection(connection));
+        return connection;
     }
 
     public void closeSessionConnection(Socket socket){
@@ -69,6 +71,13 @@ public class SessionConnectionsManager {
         session.remove(connection);
         connections.remove(socket, connection);
         connection.close();
+    }
+
+    public Session createSession(){
+        Session session = new Session(current);
+        sessions.put(current, session);
+        current++;
+        return session;
     }
 
     public ConcurrentMap<Integer, Session> getSessions() {

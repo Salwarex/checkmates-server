@@ -1,8 +1,12 @@
 package utmn.checkmates.server.game.session;
 
+import utmn.checkmates.server.Application;
 import utmn.checkmates.server.network.packet.output.OutputPacket;
 import utmn.checkmates.server.network.tcp.SessionConnection;
+import utmn.checkmates.server.utility.FormatUtils;
+import utmn.checkmates.server.utility.logger.Logger;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -11,7 +15,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class Session {
+public class Session implements Closeable {
     private final int sessionId;
     private final ConcurrentMap<String, SessionConnection> connections = new ConcurrentHashMap<>();
 
@@ -40,11 +44,18 @@ public class Session {
         current++;
         idKeys.put(id, connection.key());
         keysId.put(connection.key(), id);
+
+        //
+        Logger.log(this.getClass().getSimpleName(), "add",
+                "Подключение %s:%d (%s) добавлено к сессии #%d"
+                        .formatted(connection.getAddress(), connection.getClientSocket().getPort(), connection.getPlayerName(),
+                                sessionId));
+        //
     }
 
     public SessionConnection get(String key){
         if(!connections.containsKey(key)){
-            connections.get(key);
+            return connections.get(key);
         }
         return null;
     }
@@ -60,11 +71,16 @@ public class Session {
     }
 
     public int getId(String key){
+        //
+        Logger.log(this.getClass().getSimpleName(), "getId",
+                "Получение id. Указанный ключ: %s, Доступные ключи: [%s]"
+                        .formatted(key, FormatUtils.listString(keysId.keySet().stream().toList())));
+        //
         return keysId.get(key);
     }
 
     public int nextId(){
-        return current + 1;
+        return current;
     }
 
     public SessionConnection get(InetAddress address, String playerName){
@@ -72,7 +88,7 @@ public class Session {
     }
 
     public String key(InetAddress address, String playerName){
-        return "%s@%s".formatted(address.toString(), playerName);
+        return playerName + "@" + address.toString();
     }
 
     public void remove(SessionConnection session) {
@@ -113,5 +129,15 @@ public class Session {
 
     public SessionDto getDto(){
         return new SessionDto(sessionId, "Room #%d".formatted(sessionId), connections.size() < 2);
+    }
+
+    @Override
+    public void close() throws IOException {
+        for(SessionConnection connection : connections.values()){
+            Application.getServer().getConnectionsManager().closeSessionConnection(connection.getClientSocket());
+            connections.clear();
+            idKeys.clear();
+            keysId.clear();
+        }
     }
 }

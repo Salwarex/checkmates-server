@@ -2,9 +2,11 @@ package utmn.checkmates.server.network.tcp;
 
 import utmn.checkmates.server.network.packet.PacketHandler;
 import utmn.checkmates.server.network.packet.PacketType;
+import utmn.checkmates.server.network.packet.input.CreateSessionPacket;
 import utmn.checkmates.server.network.packet.input.InputPacket;
 import utmn.checkmates.server.network.packet.input.ServerConnectionPacket;
 import utmn.checkmates.server.network.packet.input.SessionPacket;
+import utmn.checkmates.server.network.packet.output.ClientConnectionPacket;
 import utmn.checkmates.server.network.packet.output.ExceptionPacket;
 import utmn.checkmates.server.network.packet.output.OutputPacket;
 import utmn.checkmates.server.utility.FormatUtils;
@@ -62,6 +64,7 @@ public class NetworkServer{
                         BufferedOutputStream out = new BufferedOutputStream(clientSocket.getOutputStream());
 
                         NetworkTcp.InputMessage message = NetworkTcp.readNext(rawIn, in);
+                        if(message == null) continue;
                         PacketHandler.PacketSet set = PacketHandler.handle(clientSocket, message.type, message.json);
 
                         InputPacket inputPacket = set.getInput();
@@ -75,11 +78,19 @@ public class NetworkServer{
                                                 .formatted(clientSocket.getInetAddress().toString(), clientSocket.getPort(), inputPacket.toJson()));
                                 //
 
+                                SessionConnection connection = scm.openSessionConnection(connectionPacket, clientSocket, rawIn, in, out);
+                                int id = connection.getSession().getId(connection);
+
                                 for(OutputPacket packet : outputPackets){
-                                    NetworkTcp.sendPacket(out, packet);
+                                    if(packet instanceof ClientConnectionPacket clientConnection){
+                                        clientConnection.setClientId(id);
+                                        clientConnection.setColor((byte)((id % 2 == 0 ? 0 : 1)));
+                                        NetworkTcp.sendPacket(out, clientConnection);
+                                        continue;
+                                    }
+                                    NetworkTcp.sendPacket(out,packet);
                                 }
-                                scm.openSessionConnection(connectionPacket, clientSocket, rawIn, in, out);
-                            }else{
+                            } else{
                                 //
                                 Logger.log(this.getClass().getSimpleName(), "run",
                                         "Совершена попытка внесессионного взаимодействия через сессионный запрос от %s:%d: Тип сообщения: %s; JSON: %s "

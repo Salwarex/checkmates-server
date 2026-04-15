@@ -5,15 +5,15 @@ import utmn.checkmates.server.game.session.SessionDto;
 import java.net.InetAddress;
 import java.util.List;
 
-public class CreateSessionResponse extends OutputPacket{
+public class CreateSessionResponsePacket extends OutputPacket{
     private SessionDto session;
 
-    public CreateSessionResponse(List<InetAddress> destinationAddress, SessionDto session) {
+    public CreateSessionResponsePacket(List<InetAddress> destinationAddress, SessionDto session) {
         super(destinationAddress);
         this.session = session;
     }
 
-    public CreateSessionResponse() {
+    public CreateSessionResponsePacket() {
     }
 
     public SessionDto getSession() {

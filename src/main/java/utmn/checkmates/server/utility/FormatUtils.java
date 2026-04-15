@@ -21,4 +21,12 @@ public class FormatUtils {
         }
         return result.toString();
     }
+
+    public static String listString(List<String> strings){
+        StringBuilder result = new StringBuilder();
+        for(String str : strings){
+            result.append(str).append(", ");
+        }
+        return result.toString();
+    }
 }

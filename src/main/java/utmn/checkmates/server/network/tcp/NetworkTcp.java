@@ -19,21 +19,21 @@ public class NetworkTcp {
 
         if (in == null) {
             Logger.log("NetworkTcp", "readNext",
-                    "IN = NULL");
+                    "Входные данные пусты!");
             return null;
         }
 
         int typeInt = rawIn.read();
-        if (typeInt == -1) {
+        if (typeInt < 0 || typeInt > 15) {
             Logger.log("NetworkTcp", "readNext",
-                    "TYPEINT = -1");
+                    "Пакет не соответствует протоколу взаимодействия: Байт типизации (первые 8 бит пакета) не соответствует протоколу (Ограничение: 00000000 - 00001111)");
             return null;
         }
 
         String json = in.readLine();
         if (json == null) {
             Logger.log("NetworkTcp", "readNext",
-                    "JSON = null");
+                    "Пакет не соответствует протоколу взаимодействия: отсутствует JSON-содержание");
             return null;
         }
 

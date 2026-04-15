@@ -5,6 +5,7 @@ import utmn.checkmates.server.game.session.Session;
 import utmn.checkmates.server.network.packet.input.*;
 import utmn.checkmates.server.network.packet.output.*;
 import utmn.checkmates.server.network.tcp.SessionConnectionsManager;
+import utmn.checkmates.server.utility.logger.Logger;
 
 import java.net.InetAddress;
 import java.net.Socket;
@@ -32,9 +33,8 @@ public enum PacketType {
 
         SessionConnectionsManager manager = Application.getServer().getConnectionsManager();
         Session session = manager.getSessions().get(input.getSessionId());
-        int id = session.getId(session.key(packet.getSocket().getInetAddress(), input.getPlayerName()));
 
-        return List.of(new ClientConnectionPacket(response, id, (byte) ((id % 2 == 0) ? 0 : 1)));
+        return List.of(new ClientConnectionPacket(response, -1, (byte) 0));
     }),
     
     //обновление статуса игрока
@@ -90,10 +90,16 @@ public enum PacketType {
     }),
     
     //создание сессии
-    S1010((byte) 0b1010,CreateSessionPacket.class, packet -> {
+    S1010((byte) 0b1010, CreateSessionPacket.class, packet -> {
         if(!(packet instanceof CreateSessionPacket input))
             throw new HandlingException("Представленный пакет не соответствует необходимому типу!");
-        return unknownHandlerError(packet.getSocket().getInetAddress());
+        Socket socket = input.getSocket();
+        InetAddress address = socket.getInetAddress();
+        List<InetAddress> response = List.of(address);
+
+        Session session = Application.getServer().getConnectionsManager().createSession();
+
+        return List.of(new CreateSessionResponsePacket(response, session.getDto()));
     }),
     
     //зарезервирован
@@ -142,8 +148,8 @@ public enum PacketType {
     //получение списка сессий на клиенте
     C1001((byte) 0b1001,SessionListResponsePacket.class, packet -> unknownHandlerError(packet.getSocket().getInetAddress())),
     
-    //зарезервирован
-    C1010((byte) 0b1010,null, packet -> unknownHandlerError(packet.getSocket().getInetAddress())),
+    //Ответное сообщение на создание сессии
+    C1010((byte) 0b1010,CreateSessionResponsePacket.class, packet -> unknownHandlerError(packet.getSocket().getInetAddress())),
 
     //зарезервирован
     C1011((byte) 0b1011,null, packet -> unknownHandlerError(packet.getSocket().getInetAddress())),
@@ -189,6 +195,9 @@ public enum PacketType {
     }
 
     public static PacketType getByClass(Class<? extends Packet> clazz){
+        Logger.log("PacketType", "getByClass",
+                "Поиск подходящего типа для класса: %s".formatted(clazz));
+
         for(PacketType type : PacketType.values()){
             if(clazz.equals(type.clazz)) return type;
         }
