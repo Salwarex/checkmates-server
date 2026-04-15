@@ -1,12 +1,13 @@
 package utmn.checkmates.server.network.packet.input;
 
 import java.net.InetAddress;
+import java.net.Socket;
 
 public class MovePacket extends ClientSessionImplPacket{
     private byte from;
     private byte to;
 
-    public MovePacket(InetAddress sourceAddress, int sessionId, int clientId, byte from, byte to) {
+    public MovePacket(Socket sourceAddress, int sessionId, int clientId, byte from, byte to) {
         super(sourceAddress, sessionId, clientId);
         this.from = from;
         this.to = to;

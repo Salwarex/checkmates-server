@@ -13,17 +13,20 @@ public class Application {
 
     public static void main(String[] args) {
         Logger.log("Application", "main", "Программа запущена!");
-        server = new NetworkServer(8228);
+        server = new NetworkServer(PORT);
         server.run();
         Logger.log("Application", "main", "Программа завершила выполнение!");
     }
 
     private final static Gson GSON = new GsonBuilder()
             .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
- //           .excludeFieldsWithoutExposeAnnotation()
             .create();
 
     public static Gson getGson() {
         return GSON;
+    }
+
+    public static NetworkServer getServer() {
+        return server;
     }
 }

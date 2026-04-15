@@ -7,7 +7,6 @@ import utmn.checkmates.server.utility.logger.Logger;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 
 public class SessionConnection implements AutoCloseable{
     private Session session;

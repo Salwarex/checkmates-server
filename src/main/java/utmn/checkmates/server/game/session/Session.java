@@ -5,12 +5,20 @@ import utmn.checkmates.server.network.tcp.SessionConnection;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class Session {
     private final int sessionId;
     private final ConcurrentMap<String, SessionConnection> connections = new ConcurrentHashMap<>();
+
+    //позор? :О
+    private final ConcurrentMap<Integer, String> idKeys = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Integer> keysId = new ConcurrentHashMap<>();
+    private int current = 0;
 
     public Session(int sessionId) {
         this.sessionId = sessionId;
@@ -27,6 +35,11 @@ public class Session {
     public void add(SessionConnection connection){
         if(connections.containsKey(connection.key())) return;
         connections.put(connection.key(), connection);
+
+        int id = current;
+        current++;
+        idKeys.put(id, connection.key());
+        keysId.put(connection.key(), id);
     }
 
     public SessionConnection get(String key){
@@ -36,21 +49,38 @@ public class Session {
         return null;
     }
 
-    public SessionConnection get(InetAddress address, String playerName){
-        return get("%s@%s".formatted(address.toString(), playerName));
+    public SessionConnection getById(int id){
+        String key = idKeys.get(id);
+        return connections.get(key);
     }
 
-    public void replace(SessionConnection connection){
-        if(connections.containsKey(connection.key())){
-            connections.replace(connection.key(), connection);
-        }
-        else{
-            add(connection);
-        }
+    public int getId(SessionConnection connection){
+        String key = connection.key();
+        return keysId.get(key);
+    }
+
+    public int getId(String key){
+        return keysId.get(key);
+    }
+
+    public int nextId(){
+        return current + 1;
+    }
+
+    public SessionConnection get(InetAddress address, String playerName){
+        return get(key(address, playerName));
+    }
+
+    public String key(InetAddress address, String playerName){
+        return "%s@%s".formatted(address.toString(), playerName);
     }
 
     public void remove(SessionConnection session) {
-        connections.remove(session.key(), session);
+        String key = session.key();
+        connections.remove(key, session);
+        int id = keysId.get(key);
+        keysId.remove(key);
+        idKeys.remove(id);
     }
 
 

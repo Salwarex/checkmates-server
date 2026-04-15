@@ -62,7 +62,7 @@ public class NetworkServer{
                         BufferedOutputStream out = new BufferedOutputStream(clientSocket.getOutputStream());
 
                         NetworkTcp.InputMessage message = NetworkTcp.readNext(rawIn, in);
-                        PacketHandler.PacketSet set = PacketHandler.handle(clientSocket.getInetAddress(), message.type, message.json);
+                        PacketHandler.PacketSet set = PacketHandler.handle(clientSocket, message.type, message.json);
 
                         InputPacket inputPacket = set.getInput();
                         List<OutputPacket> outputPackets = set.getOutput();
@@ -78,7 +78,7 @@ public class NetworkServer{
                                 for(OutputPacket packet : outputPackets){
                                     NetworkTcp.sendPacket(out, packet);
                                 }
-                                scm.createSessionConnection(connectionPacket, clientSocket, rawIn, in, out);
+                                scm.openSessionConnection(connectionPacket, clientSocket, rawIn, in, out);
                             }else{
                                 //
                                 Logger.log(this.getClass().getSimpleName(), "run",

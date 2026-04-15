@@ -1,18 +1,19 @@
 package utmn.checkmates.server.network.packet.input;
 
 import java.net.InetAddress;
+import java.net.Socket;
 
 public class ServerConnectionPacket extends InputPacket implements SessionPacket{
     private int sessionId;
     private String playerName;
 
-    public ServerConnectionPacket(InetAddress sourceAddress, int sessionId, String playerName) {
+    public ServerConnectionPacket(Socket sourceAddress, int sessionId, String playerName) {
         super(sourceAddress);
         this.sessionId = sessionId;
         this.playerName = playerName;
     }
 
-    public ServerConnectionPacket(InetAddress sourceAddress) {
+    public ServerConnectionPacket(Socket sourceAddress) {
         super(sourceAddress);
     }
 

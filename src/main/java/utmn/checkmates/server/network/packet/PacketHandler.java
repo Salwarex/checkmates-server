@@ -7,14 +7,15 @@ import utmn.checkmates.server.utility.FormatUtils;
 import utmn.checkmates.server.utility.logger.Logger;
 
 import java.net.InetAddress;
+import java.net.Socket;
 import java.util.List;
 
 public class PacketHandler {
-    public static PacketSet handle(InetAddress sourceAddress, byte messageType, String json)
+    public static PacketSet handle(Socket clientSocket, byte messageType, String json)
             throws HandlingException{
         PacketType type = PacketType.get(true, messageType);
         InputPacket inputPacket = (InputPacket) Application.getGson().fromJson(json, type.getClazz());
-        inputPacket.setSourceAddress(sourceAddress);
+        inputPacket.setSocket(clientSocket);
         Logger.log("PacketHandler",
                 "handle",
                 "Получен входной пакет: %s%s".formatted(inputPacket.getClass().getSimpleName(), inputPacket.toJson())

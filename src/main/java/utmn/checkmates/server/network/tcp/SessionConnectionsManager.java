@@ -25,11 +25,22 @@ public class SessionConnectionsManager {
 
     private final ExecutorService clientPool = Executors.newVirtualThreadPerTaskExecutor();
 
+    private final ConnectionChecker connectionChecker;
+
     public SessionConnectionsManager(NetworkServer networkServer) {
         this.networkServer = networkServer;
+        this.connectionChecker = new ConnectionChecker(networkServer);
+        clientPool.submit(connectionChecker);
     }
 
-    public void createSessionConnection(ServerConnectionPacket connectionPacket, Socket clientSocket, InputStream rawIn, BufferedReader in, BufferedOutputStream out) throws IOException {
+    public boolean ping(Socket clientSocket){
+        if(!connections.containsKey(clientSocket)) return false;
+        connectionChecker.update(connections.get(clientSocket));
+        return true;
+    }
+
+    public void openSessionConnection(ServerConnectionPacket connectionPacket, Socket clientSocket, InputStream rawIn, BufferedReader in, BufferedOutputStream out)
+            throws IOException {
         Session session = sessions.get(connectionPacket.getSessionId());//обработать возможные ошибки
 
         SessionConnection connection = new SessionConnection();
@@ -44,11 +55,16 @@ public class SessionConnectionsManager {
         session.add(connection);
         connections.put(clientSocket, connection);
 
+        connectionChecker.update(connection);
+
         clientPool.submit(() -> handleConnection(connection));
     }
 
     public void closeSessionConnection(Socket socket){
         SessionConnection connection = connections.get(socket);
+        Logger.out("Игрок %s (%s:%d) отключается..."
+                .formatted(connection.getPlayerName(), connection.getAddress(), connection.getClientSocket().getPort()));
+
         Session session = connection.getSession();
         session.remove(connection);
         connections.remove(socket, connection);
@@ -94,6 +110,10 @@ public class SessionConnectionsManager {
         }
     }
 
+    public NetworkServer getNetworkServer() {
+        return networkServer;
+    }
+
     //работает в отдельном потоке для каждого клиента
     private void handleConnection(SessionConnection connection) {
         InetAddress address = connection.getAddress();
@@ -112,7 +132,7 @@ public class SessionConnectionsManager {
                         "Получено: type=%d, json=%s от %s".formatted(msg.type, msg.json, address));
 
                 PacketHandler.PacketSet set = PacketHandler.handle(
-                        address,
+                        connection.getClientSocket(),
                         msg.type,
                         msg.json
                 );
