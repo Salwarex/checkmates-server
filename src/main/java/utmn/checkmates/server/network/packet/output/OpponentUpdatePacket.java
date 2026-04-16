@@ -1,13 +1,14 @@
 package utmn.checkmates.server.network.packet.output;
 
 import java.net.InetAddress;
+import java.net.Socket;
 import java.util.List;
 
 public class OpponentUpdatePacket extends OutputPacket{
     private boolean ready;
     private boolean online;
 
-    public OpponentUpdatePacket(List<InetAddress> destinationAddress, boolean ready, boolean online) {
+    public OpponentUpdatePacket(List<Socket> destinationAddress, boolean ready, boolean online) {
         super(destinationAddress);
         this.ready = ready;
         this.online = online;

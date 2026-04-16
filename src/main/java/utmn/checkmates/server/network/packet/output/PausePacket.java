@@ -1,12 +1,13 @@
 package utmn.checkmates.server.network.packet.output;
 
 import java.net.InetAddress;
+import java.net.Socket;
 import java.util.List;
 
 public class PausePacket extends OutputPacket{
     private boolean status;
 
-    public PausePacket(List<InetAddress> destinationAddress, boolean status) {
+    public PausePacket(List<Socket> destinationAddress, boolean status) {
         super(destinationAddress);
         this.status = status;
     }

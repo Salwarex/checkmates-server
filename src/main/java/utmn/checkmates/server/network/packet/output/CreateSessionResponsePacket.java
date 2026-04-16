@@ -3,12 +3,13 @@ package utmn.checkmates.server.network.packet.output;
 import utmn.checkmates.server.game.session.SessionDto;
 
 import java.net.InetAddress;
+import java.net.Socket;
 import java.util.List;
 
 public class CreateSessionResponsePacket extends OutputPacket{
     private SessionDto session;
 
-    public CreateSessionResponsePacket(List<InetAddress> destinationAddress, SessionDto session) {
+    public CreateSessionResponsePacket(List<Socket> destinationAddress, SessionDto session) {
         super(destinationAddress);
         this.session = session;
     }

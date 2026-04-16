@@ -152,7 +152,7 @@ public class SessionConnectionsManager {
 
                 //Логика отправки ответа
                 for(OutputPacket outputPacket: outputPackets){
-                    List<InetAddress> destAddresses = outputPacket.getDestinationAddresses();
+                    List<Socket> destAddresses = outputPacket.getDest();
 
                     if (destAddresses == null || destAddresses.isEmpty()) {
                         if (outputPacket instanceof SessionPacket sessionPacket) {
@@ -160,12 +160,12 @@ public class SessionConnectionsManager {
                         } else {
                             broadcast(outputPacket); // всем
                         }
-                    } else if (destAddresses.size() == 1 && destAddresses.getFirst().equals(address)) {
+                    } else if (destAddresses.size() == 1 && destAddresses.getFirst().getInetAddress().equals(address)) {
                         connection.sendPacket(outputPacket); // ответ отправителю
                     } else { //по конкретному адресу
-                        for (InetAddress dest : destAddresses) {
+                        for (Socket dest : destAddresses) {
                             for (SessionConnection session : connections.values()) {
-                                if (session.getAddress().equals(dest)) {
+                                if (session.getAddress().equals(dest.getInetAddress())) {
                                     session.sendPacket(outputPacket);
                                     break;
                                 }

@@ -3,13 +3,14 @@ package utmn.checkmates.server.utility;
 import utmn.checkmates.server.network.packet.output.OutputPacket;
 
 import java.net.InetAddress;
+import java.net.Socket;
 import java.util.List;
 
 public class FormatUtils {
     public static String listOutputs(List<OutputPacket> outputPackets){
         StringBuilder result = new StringBuilder();
         for(OutputPacket packet : outputPackets){
-            result.append("%s to %s %s;".formatted(packet.getClass().getSimpleName(), listAddresses(packet.getDestinationAddresses()), packet.toJson()));
+            result.append("%s to %s %s;".formatted(packet.getClass().getSimpleName(), listAddresses(packet.getDest().stream().map(Socket::getInetAddress).toList()), packet.toJson()));
         }
         return result.toString();
     }

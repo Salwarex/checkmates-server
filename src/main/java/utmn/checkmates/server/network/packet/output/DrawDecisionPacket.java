@@ -1,12 +1,13 @@
 package utmn.checkmates.server.network.packet.output;
 
 import java.net.InetAddress;
+import java.net.Socket;
 import java.util.List;
 
 public class DrawDecisionPacket extends OutputPacket{
     private int type;
 
-    public DrawDecisionPacket(List<InetAddress> destinationAddress, int type) {
+    public DrawDecisionPacket(List<Socket> destinationAddress, int type) {
         super(destinationAddress);
         this.type = type;
     }

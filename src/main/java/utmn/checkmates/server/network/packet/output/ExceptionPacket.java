@@ -1,13 +1,14 @@
 package utmn.checkmates.server.network.packet.output;
 
 import java.net.InetAddress;
+import java.net.Socket;
 import java.util.List;
 
 public class ExceptionPacket extends OutputPacket{
     private int code;
     private String text;
 
-    public ExceptionPacket(List<InetAddress> destinationAddress, int code, String text) {
+    public ExceptionPacket(List<Socket> destinationAddress, int code, String text) {
         super(destinationAddress);
         this.code = code;
         this.text = text;

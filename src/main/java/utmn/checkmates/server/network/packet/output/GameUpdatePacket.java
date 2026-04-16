@@ -1,6 +1,7 @@
 package utmn.checkmates.server.network.packet.output;
 
 import java.net.InetAddress;
+import java.net.Socket;
 import java.util.List;
 
 public class GameUpdatePacket extends OutputPacket{
@@ -9,7 +10,7 @@ public class GameUpdatePacket extends OutputPacket{
     private long timeWhite;
     private long timeBlack;
 
-    public GameUpdatePacket(List<InetAddress> destinationAddress, String fen, boolean check, long timeWhite, long timeBlack) {
+    public GameUpdatePacket(List<Socket> destinationAddress, String fen, boolean check, long timeWhite, long timeBlack) {
         super(destinationAddress);
         this.fen = fen;
         this.check = check;

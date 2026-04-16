@@ -99,7 +99,7 @@ public class NetworkServer{
                                 //
 
                                 ExceptionPacket packet = new ExceptionPacket(
-                                        List.of(clientSocket.getInetAddress()), 6,
+                                        List.of(clientSocket), 6,
                                         "Отсутствует подключение к сессии! Для подключения используйте запрос SERVER_CONNECTION(S0001).");
                                 NetworkTcp.sendPacket(out, packet);
                                 out.close();

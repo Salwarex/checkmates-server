@@ -1,12 +1,13 @@
 package utmn.checkmates.server.network.packet.output;
 
 import java.net.InetAddress;
+import java.net.Socket;
 import java.util.List;
 
 public class IllegalMovePacket extends OutputPacket{
     private String reason;
 
-    public IllegalMovePacket(List<InetAddress> destinationAddress, String reason) {
+    public IllegalMovePacket(List<Socket> destinationAddress, String reason) {
         super(destinationAddress);
         this.reason = reason;
     }

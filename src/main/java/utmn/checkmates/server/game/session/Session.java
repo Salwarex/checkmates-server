@@ -67,7 +67,8 @@ public class Session implements Closeable {
 
     public int getId(SessionConnection connection){
         String key = connection.key();
-        return keysId.get(key);
+
+        return keysId.getOrDefault(key, -1);
     }
 
     public int getId(String key){

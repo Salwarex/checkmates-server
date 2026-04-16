@@ -18,9 +18,10 @@ public enum PacketType {
         if(!(packet instanceof PingRequestPacket input))
             throw new HandlingException("Представленный пакет не соответствует необходимому типу!");
         Socket socket = input.getSocket();
+        List<Socket> response = List.of(socket);
         boolean result = Application.getServer().getConnectionsManager().ping(input.getSocket());
 
-        return List.of(new PingResponsePacket(List.of(socket.getInetAddress()))); //todo: заменить на сокеты;(
+        return List.of(new PingResponsePacket(response)); //todo: заменить на сокеты;(
     }),
     
     //подключение к серверу
@@ -28,8 +29,7 @@ public enum PacketType {
         if(!(packet instanceof ServerConnectionPacket input))
             throw new HandlingException("Представленный пакет не соответствует необходимому типу!");
         Socket socket = input.getSocket();
-        InetAddress address = socket.getInetAddress();
-        List<InetAddress> response = List.of(address);
+        List<Socket> response = List.of(socket);
 
         SessionConnectionsManager manager = Application.getServer().getConnectionsManager();
         Session session = manager.getSessions().get(input.getSessionId());
@@ -41,52 +41,56 @@ public enum PacketType {
     S0010((byte) 0b0010, PlayerUpdatePacket.class, packet -> {
         if(!(packet instanceof PlayerUpdatePacket input))
             throw new HandlingException("Представленный пакет не соответствует необходимому типу!");
-        return unknownHandlerError(packet.getSocket().getInetAddress());
+        return unknownHandlerError(packet.getSocket());
     }),
     
     //зарезервирован
-    S0011((byte) 0b0011,null, packet -> unknownHandlerError(packet.getSocket().getInetAddress())),
+    S0011((byte) 0b0011,null, packet -> unknownHandlerError(packet.getSocket())),
     
     //движение фигуры
     S0100((byte) 0b0100,MovePacket.class, packet -> {
         if(!(packet instanceof MovePacket input))
             throw new HandlingException("Представленный пакет не соответствует необходимому типу!");
-        return unknownHandlerError(packet.getSocket().getInetAddress());
+        return unknownHandlerError(packet.getSocket());
     }),
     
     //сдача игрока
     S0101((byte) 0b0101,ResignPacket.class, packet -> {
         if(!(packet instanceof ResignPacket input))
             throw new HandlingException("Представленный пакет не соответствует необходимому типу!");
-        return unknownHandlerError(packet.getSocket().getInetAddress());
+        return unknownHandlerError(packet.getSocket());
     }),
     
     //предложение ничьей
     S0110((byte) 0b0110,DrawOfferPacket.class, packet -> {
         if(!(packet instanceof DrawOfferPacket input))
             throw new HandlingException("Представленный пакет не соответствует необходимому типу!");
-        return unknownHandlerError(packet.getSocket().getInetAddress());
+        return unknownHandlerError(packet.getSocket());
     }),
     
     //ответ на предложение ничьей
     S0111((byte) 0b0111,DrawResponsePacket.class, packet -> {
         if(!(packet instanceof DrawResponsePacket input))
             throw new HandlingException("Представленный пакет не соответствует необходимому типу!");
-        return unknownHandlerError(packet.getSocket().getInetAddress());
+        return unknownHandlerError(packet.getSocket());
     }),
     
     //контролируемое отключение
     S1000((byte) 0b1000,DisconnectPacket.class, packet -> {
         if(!(packet instanceof DisconnectPacket input))
             throw new HandlingException("Представленный пакет не соответствует необходимому типу!");
-        return unknownHandlerError(packet.getSocket().getInetAddress());
+
+        Socket socket = input.getSocket();
+        List<Socket> response = List.of(socket);
+
+        return unknownHandlerError(packet.getSocket());
     }),
     
     //запрос списка активных сессий
     S1001((byte) 0b1001,SessionListRequestPacket.class, packet -> {
         if(!(packet instanceof SessionListRequestPacket input))
             throw new HandlingException("Представленный пакет не соответствует необходимому типу!");
-        return unknownHandlerError(packet.getSocket().getInetAddress());
+        return unknownHandlerError(packet.getSocket());
     }),
     
     //создание сессии
@@ -94,8 +98,7 @@ public enum PacketType {
         if(!(packet instanceof CreateSessionPacket input))
             throw new HandlingException("Представленный пакет не соответствует необходимому типу!");
         Socket socket = input.getSocket();
-        InetAddress address = socket.getInetAddress();
-        List<InetAddress> response = List.of(address);
+        List<Socket> response = List.of(socket);
 
         Session session = Application.getServer().getConnectionsManager().createSession();
 
@@ -103,68 +106,68 @@ public enum PacketType {
     }),
     
     //зарезервирован
-    S1011((byte) 0b1011,null, packet ->  unknownHandlerError(packet.getSocket().getInetAddress())),
+    S1011((byte) 0b1011,null, packet ->  unknownHandlerError(packet.getSocket())),
 
     //зарезервирован
-    S1100((byte) 0b1100,null, packet -> unknownHandlerError(packet.getSocket().getInetAddress())),
+    S1100((byte) 0b1100,null, packet -> unknownHandlerError(packet.getSocket())),
 
     //зарезервирован
-    S1101((byte) 0b1101,null, packet -> unknownHandlerError(packet.getSocket().getInetAddress())),
+    S1101((byte) 0b1101,null, packet -> unknownHandlerError(packet.getSocket())),
 
     //зарезервирован
-    S1110((byte) 0b1110,null, packet -> unknownHandlerError(packet.getSocket().getInetAddress())),
+    S1110((byte) 0b1110,null, packet -> unknownHandlerError(packet.getSocket())),
 
     //зарезервирован
-    S1111((byte) 0b1111,null, packet -> unknownHandlerError(packet.getSocket().getInetAddress())),
+    S1111((byte) 0b1111,null, packet -> unknownHandlerError(packet.getSocket())),
 
     //ОБРАЩЕНИЯ К КЛИЕНТУ
     //ответ на пинг
-    C0000((byte) 0b0000,PingResponsePacket.class, packet -> unknownHandlerError(packet.getSocket().getInetAddress())),
+    C0000((byte) 0b0000,PingResponsePacket.class, packet -> unknownHandlerError(packet.getSocket())),
     
     //подключение к клиенту
-    C0001((byte) 0b0001,ClientConnectionPacket.class, packet -> unknownHandlerError(packet.getSocket().getInetAddress())),
+    C0001((byte) 0b0001,ClientConnectionPacket.class, packet -> unknownHandlerError(packet.getSocket())),
     
     //обновление оппонента
-    C0010((byte) 0b0010,OpponentUpdatePacket.class, packet -> unknownHandlerError(packet.getSocket().getInetAddress())),
+    C0010((byte) 0b0010,OpponentUpdatePacket.class, packet -> unknownHandlerError(packet.getSocket())),
     
     //статус запуска игры
-    C0011((byte) 0b0011,GameStartPacket.class, packet -> unknownHandlerError(packet.getSocket().getInetAddress())),
+    C0011((byte) 0b0011,GameStartPacket.class, packet -> unknownHandlerError(packet.getSocket())),
     
     //обновлене игры
-    C0100((byte) 0b0100,GameUpdatePacket.class, packet -> unknownHandlerError(packet.getSocket().getInetAddress())),
+    C0100((byte) 0b0100,GameUpdatePacket.class, packet -> unknownHandlerError(packet.getSocket())),
     
     //недопустимый ход
-    C0101((byte) 0b0101,IllegalMovePacket.class, packet -> unknownHandlerError(packet.getSocket().getInetAddress())),
+    C0101((byte) 0b0101,IllegalMovePacket.class, packet -> unknownHandlerError(packet.getSocket())),
     
     //промежуточный пакет о решении по ничьей
-    C0110((byte) 0b0110,DrawDecisionPacket.class, packet -> unknownHandlerError(packet.getSocket().getInetAddress())),
+    C0110((byte) 0b0110,DrawDecisionPacket.class, packet -> unknownHandlerError(packet.getSocket())),
     
     //завершение игры
-    C0111((byte) 0b0111,GameOverPacket.class, packet -> unknownHandlerError(packet.getSocket().getInetAddress())),
+    C0111((byte) 0b0111,GameOverPacket.class, packet -> unknownHandlerError(packet.getSocket())),
     
     //пауза
-    C1000((byte) 0b1000,PausePacket.class, packet -> unknownHandlerError(packet.getSocket().getInetAddress())),
+    C1000((byte) 0b1000,PausePacket.class, packet -> unknownHandlerError(packet.getSocket())),
     
     //получение списка сессий на клиенте
-    C1001((byte) 0b1001,SessionListResponsePacket.class, packet -> unknownHandlerError(packet.getSocket().getInetAddress())),
+    C1001((byte) 0b1001,SessionListResponsePacket.class, packet -> unknownHandlerError(packet.getSocket())),
     
     //Ответное сообщение на создание сессии
-    C1010((byte) 0b1010,CreateSessionResponsePacket.class, packet -> unknownHandlerError(packet.getSocket().getInetAddress())),
+    C1010((byte) 0b1010,CreateSessionResponsePacket.class, packet -> unknownHandlerError(packet.getSocket())),
 
     //зарезервирован
-    C1011((byte) 0b1011,null, packet -> unknownHandlerError(packet.getSocket().getInetAddress())),
+    C1011((byte) 0b1011,null, packet -> unknownHandlerError(packet.getSocket())),
 
     //зарезервирован
-    C1100((byte) 0b1100,null, packet -> unknownHandlerError(packet.getSocket().getInetAddress())),
+    C1100((byte) 0b1100,null, packet -> unknownHandlerError(packet.getSocket())),
 
     //зарезервирован
-    C1101((byte) 0b1101,null, packet -> unknownHandlerError(packet.getSocket().getInetAddress())),
+    C1101((byte) 0b1101,null, packet -> unknownHandlerError(packet.getSocket())),
 
     //зарезервирован
-    C1110((byte) 0b1110,null, packet -> unknownHandlerError(packet.getSocket().getInetAddress())),
+    C1110((byte) 0b1110,null, packet -> unknownHandlerError(packet.getSocket())),
 
     //сообщение об ошибке
-    C1111((byte) 0b1111,ExceptionPacket.class, packet -> unknownHandlerError(packet.getSocket().getInetAddress()));
+    C1111((byte) 0b1111,ExceptionPacket.class, packet -> unknownHandlerError(packet.getSocket()));
 
     private final byte value;
     private final Class<? extends Packet> clazz;
@@ -204,9 +207,9 @@ public enum PacketType {
         return null;
     }
     
-    private static List<OutputPacket> unknownHandlerError(InetAddress address){
+    private static List<OutputPacket> unknownHandlerError(Socket socket){
         return List.of(new ExceptionPacket(
-                List.of(address),
+                List.of(socket),
                 4,
                 "Обработчик для данного пакета не предусмотрен"
         ));

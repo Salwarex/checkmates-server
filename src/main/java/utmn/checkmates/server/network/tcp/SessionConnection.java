@@ -129,6 +129,6 @@ public class SessionConnection implements AutoCloseable{
         } catch (IOException e) {
             Logger.err("Ошибка закрытия сессии " + key() + ": " + e.getMessage());
         }
-        Logger.log("PlayerConnection", "close", "Сессия закрыта: " + key());
+        Logger.log("SessionConnection", "close", "Сессия закрыта: " + key());
     }
 }

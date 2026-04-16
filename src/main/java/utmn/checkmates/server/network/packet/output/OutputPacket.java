@@ -1,27 +1,27 @@
 package utmn.checkmates.server.network.packet.output;
 
-import com.google.gson.annotations.Expose;
 import utmn.checkmates.server.network.packet.Packet;
 
 import java.net.InetAddress;
+import java.net.Socket;
 import java.util.List;
 
 public abstract class OutputPacket extends Packet {
     //@Expose(serialize = false, deserialize = false)
-    private transient List<InetAddress> destinationAddresses;
+    private transient List<Socket> dest;
 
-    public OutputPacket(List<InetAddress> destinationAddresses) {
-        this.destinationAddresses = destinationAddresses;
+    public OutputPacket(List<Socket> dest) {
+        this.dest = dest;
     }
 
     public OutputPacket() {
     }
 
-    public List<InetAddress> getDestinationAddresses() {
-        return destinationAddresses;
+    public List<Socket> getDest() {
+        return dest;
     }
 
-    public void setDestinationAddresses(List<InetAddress> destinationAddresses) {
-        this.destinationAddresses = destinationAddresses;
+    public void setDest(List<Socket> dest) {
+        this.dest = dest;
     }
 }
