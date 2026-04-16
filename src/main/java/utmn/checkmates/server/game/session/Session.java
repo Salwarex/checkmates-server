@@ -24,6 +24,8 @@ public class Session implements Closeable {
     private final ConcurrentMap<String, Integer> keysId = new ConcurrentHashMap<>();
     private int current = 0;
 
+    private GameState gameState;
+
     public Session(int sessionId) {
         this.sessionId = sessionId;
     }

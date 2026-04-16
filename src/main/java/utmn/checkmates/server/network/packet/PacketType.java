@@ -4,6 +4,7 @@ import utmn.checkmates.server.Application;
 import utmn.checkmates.server.game.session.Session;
 import utmn.checkmates.server.network.packet.input.*;
 import utmn.checkmates.server.network.packet.output.*;
+import utmn.checkmates.server.network.tcp.SessionConnection;
 import utmn.checkmates.server.network.tcp.SessionConnectionsManager;
 import utmn.checkmates.server.utility.logger.Logger;
 
@@ -34,7 +35,8 @@ public enum PacketType {
         SessionConnectionsManager manager = Application.getServer().getConnectionsManager();
         Session session = manager.getSessions().get(input.getSessionId());
 
-        return List.of(new ClientConnectionPacket(response, -1, (byte) 0));
+        return List.of(new ClientConnectionPacket(response, -1, (byte) 0),
+                new OpponentUpdatePacket(List.of(), false, true));
     }),
     
     //обновление статуса игрока
@@ -75,22 +77,33 @@ public enum PacketType {
         return unknownHandlerError(packet.getSocket());
     }),
     
-    //контролируемое отключение
+    //"мягкое" отключение
     S1000((byte) 0b1000,DisconnectPacket.class, packet -> {
         if(!(packet instanceof DisconnectPacket input))
             throw new HandlingException("Представленный пакет не соответствует необходимому типу!");
 
         Socket socket = input.getSocket();
-        List<Socket> response = List.of(socket);
+        List<Socket> response = List.of();
 
-        return unknownHandlerError(packet.getSocket());
+        SessionConnectionsManager scm = Application.getServer().getConnectionsManager();
+        //SessionConnection connection = scm.getSessions().get(input.getSessionId()).getById(input.getClientId());
+        scm.closeSessionConnection(socket);
+        //todo: потом сделать так, чтобы был реконнект адекватный
+
+        return List.of(new OpponentUpdatePacket(response, false, false));
     }),
     
     //запрос списка активных сессий
     S1001((byte) 0b1001,SessionListRequestPacket.class, packet -> {
         if(!(packet instanceof SessionListRequestPacket input))
             throw new HandlingException("Представленный пакет не соответствует необходимому типу!");
-        return unknownHandlerError(packet.getSocket());
+
+        Socket socket = input.getSocket();
+        List<Socket> response = List.of(socket);
+
+        return List.of(new SessionListResponsePacket(response,
+                Application.getServer().getConnectionsManager().getSessions().values().stream().map(Session::getDto).toList())
+        );
     }),
     
     //создание сессии

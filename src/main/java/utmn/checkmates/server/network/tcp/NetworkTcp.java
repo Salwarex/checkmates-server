@@ -23,14 +23,20 @@ public class NetworkTcp {
             return null;
         }
 
-        int typeInt = rawIn.read();
+        int typeInt = rawIn.read(); //блокирует поток и сначала ждёт число
+        Logger.log("NetworkTcp", "readNext",
+                "Получен бит типизации. Сырые данные: %d".formatted(typeInt));
+
+        String json = in.readLine(); //блокирует поток и ждёт следующего сообщения, которо
+
+        Logger.log("NetworkTcp", "readNext",
+                "Получено сообщение. Сырые данные: %s".formatted(json));
+
         if (typeInt < 0 || typeInt > 15) {
-            Logger.log("NetworkTcp", "readNext",
-                    "Пакет не соответствует протоколу взаимодействия: Байт типизации (первые 8 бит пакета) не соответствует протоколу (Ограничение: 00000000 - 00001111)");
+            Logger.err("Пакет не соответствует протоколу взаимодействия: Байт типизации (первые 8 бит пакета) не соответствует протоколу (Ограничение: 00000000 - 00001111)");
             return null;
         }
 
-        String json = in.readLine();
         if (json == null) {
             Logger.log("NetworkTcp", "readNext",
                     "Пакет не соответствует протоколу взаимодействия: отсутствует JSON-содержание");

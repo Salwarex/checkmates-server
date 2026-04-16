@@ -6,10 +6,14 @@ import com.google.gson.GsonBuilder;
 import utmn.checkmates.server.network.tcp.NetworkServer;
 import utmn.checkmates.server.utility.logger.Logger;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class Application {
 
     private static final int PORT = 8228;
     private static NetworkServer server;
+    private static final ExecutorService POOL = Executors.newVirtualThreadPerTaskExecutor();
 
     public static void main(String[] args) {
         Logger.log("Application", "main", "Программа запущена!");
@@ -20,6 +24,7 @@ public class Application {
 
     private final static Gson GSON = new GsonBuilder()
             .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+            .setLenient()
             .create();
 
     public static Gson getGson() {
@@ -28,5 +33,9 @@ public class Application {
 
     public static NetworkServer getServer() {
         return server;
+    }
+
+    public static ExecutorService getPool() {
+        return POOL;
     }
 }

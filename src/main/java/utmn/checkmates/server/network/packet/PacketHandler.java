@@ -2,6 +2,8 @@ package utmn.checkmates.server.network.packet;
 
 import utmn.checkmates.server.Application;
 import utmn.checkmates.server.network.packet.input.InputPacket;
+import utmn.checkmates.server.network.packet.input.PingRequestPacket;
+import utmn.checkmates.server.network.packet.output.ExceptionPacket;
 import utmn.checkmates.server.network.packet.output.OutputPacket;
 import utmn.checkmates.server.utility.FormatUtils;
 import utmn.checkmates.server.utility.logger.Logger;
@@ -15,6 +17,10 @@ public class PacketHandler {
             throws HandlingException{
         PacketType type = PacketType.get(true, messageType);
         InputPacket inputPacket = (InputPacket) Application.getGson().fromJson(json, type.getClazz());
+        if(inputPacket == null)
+            return new PacketSet(new PingRequestPacket(clientSocket),
+                    List.of(new ExceptionPacket(List.of(clientSocket), 2, "Присланный пакет не содержит полезной нагрузки: JSON == null")));
+
         inputPacket.setSocket(clientSocket);
         Logger.log("PacketHandler",
                 "handle",

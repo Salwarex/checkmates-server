@@ -1,5 +1,6 @@
 package utmn.checkmates.server.network.tcp;
 
+import utmn.checkmates.server.Application;
 import utmn.checkmates.server.game.session.Session;
 import utmn.checkmates.server.network.packet.PacketHandler;
 import utmn.checkmates.server.network.packet.input.InputPacket;
@@ -24,11 +25,12 @@ public class SessionConnectionsManager {
     private final ConcurrentMap<Integer, Session> sessions = new ConcurrentHashMap<>();
     private final ConcurrentMap<Socket, SessionConnection> connections = new ConcurrentHashMap<>();
 
-    private final ExecutorService clientPool = Executors.newVirtualThreadPerTaskExecutor();
+    private final ExecutorService clientPool;
 
     private final ConnectionChecker connectionChecker;
 
     public SessionConnectionsManager(NetworkServer networkServer) {
+        this.clientPool = Application.getPool();
         this.networkServer = networkServer;
         this.connectionChecker = new ConnectionChecker(networkServer);
         clientPool.submit(connectionChecker);
