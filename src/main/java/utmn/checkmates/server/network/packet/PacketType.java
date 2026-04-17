@@ -1,7 +1,7 @@
 package utmn.checkmates.server.network.packet;
 
 import utmn.checkmates.server.Application;
-import utmn.checkmates.server.game.session.Session;
+import utmn.checkmates.server.game.session.*;
 import utmn.checkmates.server.network.packet.input.*;
 import utmn.checkmates.server.network.packet.output.*;
 import utmn.checkmates.server.network.tcp.SessionConnection;
@@ -53,7 +53,33 @@ public enum PacketType {
     S0100((byte) 0b0100,MovePacket.class, packet -> {
         if(!(packet instanceof MovePacket input))
             throw new HandlingException("Представленный пакет не соответствует необходимому типу!");
-        return unknownHandlerError(packet.getSocket());
+        Socket socket = input.getSocket();
+        List<Socket> response = List.of();
+
+        SessionConnectionsManager manager = Application.getServer().getConnectionsManager();
+        Session session = manager.getSessions().get(input.getSessionId());
+        GameState gameState = session.getGameState();
+
+        Position from = Position.getByByte(input.getFrom());
+        Position to = Position.getByByte(input.getTo());
+
+        try{
+            gameState.move(from, to);
+        } catch (ServerSideException e) {
+            return List.of(new ExceptionPacket(
+                    List.of(socket),
+                    1,
+                    e.getMessage()
+            ));
+        } catch (GameRuleException e) {
+            return List.of(new ExceptionPacket(
+                    List.of(socket),
+                    5,
+                    e.getMessage()
+            ));
+        }
+
+        return List.of(new GameUpdatePacket(response, gameState.getFen(), false, 0L, 0L));
     }),
     
     //сдача игрока

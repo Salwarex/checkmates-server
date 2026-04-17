@@ -9,9 +9,6 @@ import utmn.checkmates.server.utility.logger.Logger;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -25,6 +22,8 @@ public class Session implements Closeable {
     private int current = 0;
 
     private GameState gameState;
+
+    private boolean started;
 
     public Session(int sessionId) {
         this.sessionId = sessionId;
@@ -142,5 +141,34 @@ public class Session implements Closeable {
             idKeys.clear();
             keysId.clear();
         }
+    }
+
+
+    public static class Timer implements Runnable{
+        private long remainSeconds;
+
+        public Timer(long remainSeconds) {
+            this.remainSeconds = remainSeconds;
+        }
+
+        @Override
+        public void run() {
+            while(remainSeconds > 0){
+                try {
+                    remainSeconds -= 1_000L;
+                    Thread.sleep(1_000L);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+
+    public GameState getGameState() {
+        return gameState;
+    }
+
+    public void setGameState(GameState gameState) {
+        this.gameState = gameState;
     }
 }

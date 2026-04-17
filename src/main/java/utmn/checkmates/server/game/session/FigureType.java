@@ -36,4 +36,8 @@ public enum FigureType {
         }
         return null;
     }
+
+    public static FigureType getByFen(char fen){
+        return getByFen(((Character) fen).toString());
+    }
 }
