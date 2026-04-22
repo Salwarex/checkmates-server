@@ -18,11 +18,11 @@ public class GameState {
     private Position aislePos;
 
     public GameState(){
-        this.reader = new FenReader("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        updateFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     }
 
     public GameState(String fen){
-        this.reader = new FenReader(fen);
+        updateFen(fen);
     }
 
     public void updateFen(String fen){

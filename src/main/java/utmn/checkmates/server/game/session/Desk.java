@@ -43,7 +43,7 @@ public class Desk {
             this.pos = position;
             this.figure = figure;
 
-            Logger.log("Desk.Square", "Constructor", "Клетка %s инициализирована! Фигура : %s".formatted(pos, figure == null ? "null" : figure));
+            Logger.log("Desk.Square", "Constructor", "Клетка %s инициализирована! Фигура : %s".formatted(pos, figure == null ? "null" : figure.getType()));
             if(!PositionMatcher.put(pos, this))
                 throw new RuntimeException("В ходе генерации поля возникла дублирующая клетка!");
         }
@@ -58,7 +58,7 @@ public class Desk {
 
         public void setFigure(Figure figure) {
             Logger.log("Desk", "setFigure", "Тип фигуры в клетке %s изменен на %s"
-                    .formatted(pos, figure == null ? "null" : figure));
+                    .formatted(pos, figure == null ? "null" : figure.getType()));
             this.figure = figure;
         }
     }

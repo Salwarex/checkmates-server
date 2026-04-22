@@ -60,6 +60,7 @@ public class Position {
     }
 
     public static String getNotationByPosition(Position position){
+        if (position == null) return "-";
         StringBuilder result = new StringBuilder();
         int row = position.getRow();
         int column = position.getColumn();

@@ -1,7 +1,9 @@
 package utmn.checkmates.server.game.session;
 
+import utmn.checkmates.server.utility.logger.Logger;
+
 public class FenBuilder {
-    private StringBuilder result;
+    private StringBuilder result = new StringBuilder();
 
     public FenBuilder(GameState state){
         addDesk(state.getDesk());
@@ -14,6 +16,10 @@ public class FenBuilder {
     }
 
     private void addDesk(Desk desk){
+        //
+        Logger.log("FenBuilder", "addDesk",
+                "Добавляется...");
+        //
         StringBuilder deskStrBuilder = new StringBuilder();
         for (int i = 0; i < 8; i++) {
             StringBuilder row = new StringBuilder();
@@ -35,14 +41,26 @@ public class FenBuilder {
         }
 
         String deskStr = deskStrBuilder.toString();
-        if (deskStr.charAt(deskStr.length()-1)=='/'){
-            deskStr = deskStr.replace(deskStr.substring(deskStr.length()-1), "");
+        if (deskStr.endsWith("/")) {
+            deskStr = deskStr.substring(0, deskStr.length() - 1);
         }
         result.append(deskStr).append(" ");
+        //
+        Logger.log("FenBuilder", "addStep",
+                "Добавлена.");
+        //
     }
 
     private void addNextSide(int side){
+        //
+        Logger.log("FenBuilder", "addNextSide",
+                "Добавляется...");
+        //
         result.append(side == 0 ? 'w' : side == 1 ? 'b' : '?').append(' ');
+        //
+        Logger.log("FenBuilder", "addNextSide",
+                "Добавлена.");
+        //
     }
 
     private void addCastlings(
@@ -51,25 +69,59 @@ public class FenBuilder {
             boolean blackLongCastling,
             boolean blackShortCastling
     ){
+        //
+        Logger.log("FenBuilder", "addCastlings",
+                "Добавляется...");
+        //
         StringBuilder castlingBuilder = new StringBuilder();
-        castlingBuilder.append(whiteLongCastling ? 'Q' : '-');
-        castlingBuilder.append(blackLongCastling ? 'q' : '-');
-        castlingBuilder.append(whiteShortCastling ? 'K' : '-');
-        castlingBuilder.append(blackShortCastling ? 'k' : '-');
 
-        result.append(castlingBuilder).append(" ");
+        if (whiteLongCastling) castlingBuilder.append('Q');
+        if (whiteShortCastling) castlingBuilder.append('K');
+        if (blackLongCastling) castlingBuilder.append('q');
+        if (blackShortCastling) castlingBuilder.append('k');
+
+        String castlingStr = castlingBuilder.length() > 0 ? castlingBuilder.toString() : "-";
+        result.append(castlingStr).append(" ");
+        //
+        Logger.log("FenBuilder", "addCastlings",
+                "Добавлена.");
+        //
     }
 
     private void addAisle(Position aisle){
-        result.append(Position.getNotationByPosition(aisle)).append(" ");
+        //
+        Logger.log("FenBuilder", "addAisle",
+                "Добавляется...");
+        //
+        if(aisle != null) result.append(Position.getNotationByPosition(aisle)).append(" ");
+        //
+        Logger.log("FenBuilder", "addAisle",
+                "Добавлена.");
+        //
     }
 
     private void addSubStep(int subStep){
+        //
+        Logger.log("FenBuilder", "addSubStep",
+                "Добавляется...");
+        //
         result.append(subStep).append(" ");
+        //
+        Logger.log("FenBuilder", "addSubStep",
+                "Добавлена.");
+        //
     }
 
     private void addStep(int step){
+        //
+        Logger.log("FenBuilder", "addStep",
+                "Добавляется...");
+        //
         result.append(step);
+        //
+        Logger.log("FenBuilder", "addStep",
+                "Добавлена.");
+        //
     }
 
     public String toFen(){

@@ -131,7 +131,7 @@ public class Session implements Closeable {
         Application.getPool().submit(new Timer(TIME_DELAY_GAME_START, () -> {
             try{
                 start(false);
-            } catch (GameRuleException e) {
+            } catch (Exception e) {
                 Logger.err("Возникла ошибка при запуске игры для сессии %d: %s"
                         .formatted(sessionId, e.getMessage()));
                 broadcast(new GameStartPacket(List.of(), -1), null);
@@ -145,16 +145,24 @@ public class Session implements Closeable {
     public void start(boolean forced) throws GameRuleException{
         if(started)
             throw new GameRuleException("Игра уже запущена.");
-        if(connections.size() <= 2)
-            throw new GameRuleException("Для начала игры требуется 2 и более игрока.");
+//        if(connections.size() <= 2)
+//            throw new GameRuleException("Для начала игры требуется 2 и более игрока.");
         if(!allReady() && !forced)
             throw new GameRuleException("Для начала игры требуется, чтобы оба игрока были готовы!");
 
+        gameState = new GameState();
         this.started = true;
         Logger.out("Игра для сессии #%d успешно запущена!".formatted(sessionId));
+        String fen = gameState.getFen();
+
+        Logger.out("Игра для сессии #%d успешно запущена!".formatted(sessionId));
         broadcast(new GameStartPacket(List.of(), 0), null);
-        broadcast(new GameUpdatePacket(List.of(), gameState.getFen(), false, -1L, -1L),
-                null);
+        broadcast(new GameUpdatePacket(List.of(), fen, false, 1, 1), null);
+    }
+
+    public static void main(String[] args) throws GameRuleException{
+        GameState gameState = new GameState();
+        String fen = gameState.getFen();
     }
 
     public boolean allReady(){

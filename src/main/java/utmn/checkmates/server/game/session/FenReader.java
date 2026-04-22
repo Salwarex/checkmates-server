@@ -72,28 +72,26 @@ public class FenReader {
     }
 
     List<Desk.Square> getSquares(int rowIndex){
-
-        //todo: сделать проверки
         String fenState = rows[rowIndex];
-
         List<Desk.Square> squares = new ArrayList<>();
         int actualIndex = 0;
 
         for (int i = 0; i < fenState.length(); i++) {
             char character = fenState.charAt(i);
-            String c = Character.toString((character));
+            String c = Character.toString(character);
+
             if(Character.isDigit(character)){
                 byte b = Byte.parseByte(c);
                 for(int j = 0; j < b; j++){
-                    squares.set(actualIndex, new Desk.Square(new Position(rowIndex, actualIndex), null));
+                    squares.add(new Desk.Square(new Position(rowIndex, actualIndex), null));
                     actualIndex++;
                 }
-            }else{
+            } else {
                 FigureType type = FigureType.getByFen(c);
                 boolean white = Character.isUpperCase(character);
-
                 Figure figure = new Figure(type, white);
-                squares.set(actualIndex, new Desk.Square(new Position(rowIndex, actualIndex), figure));
+                squares.add(new Desk.Square(new Position(rowIndex, actualIndex), figure));
+                actualIndex++;
             }
         }
         return squares;
