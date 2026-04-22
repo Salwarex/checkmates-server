@@ -6,7 +6,7 @@ public class Position {
     private final int row;
     private final int column;
 
-    public Position(int row, int column) {
+    public Position(int column, int row) {
         this.row = row;
         this.column = column;
     }
@@ -29,13 +29,13 @@ public class Position {
 
     @Override
     public int hashCode() {
-        return Objects.hash(row, column);
+        return Objects.hash(column, row);
     }
 
     @Override
     public String toString() {
-        return "(" + row +
-                ", " + column +
+        return "(" + column +
+                ", " + row +
                 ')';
     }
 
@@ -56,7 +56,7 @@ public class Position {
             case 'h' -> 7;
             default -> -1;
         };
-        return new Position(row, column);
+        return new Position(column, row);
     }
 
     public static String getNotationByPosition(Position position){
@@ -81,9 +81,13 @@ public class Position {
         return result.toString();
     }
 
+    public static void main(String[] args) {
+        System.out.println(Position.getByByte((byte )0b000111));
+    }
+
     public static Position getByByte(byte b){
-        int row = (b >> 4) & 0b1111;
-        int column = b & 0b1111;
-        return new Position(row, column);
+        int row = (b >> 3) & 0b111;
+        int column = b & 0b111;
+        return new Position(column, row);
     }
 }

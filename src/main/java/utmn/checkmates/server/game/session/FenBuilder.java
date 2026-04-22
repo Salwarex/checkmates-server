@@ -7,7 +7,7 @@ public class FenBuilder {
 
     public FenBuilder(GameState state){
         addDesk(state.getDesk());
-        addNextSide((state.getCurrentSide() == 1) ? 0 : (state.getCurrentSide() == 0) ? 1 : -1);
+        addNextSide((state.getLastSide() == 1) ? 0 : (state.getLastSide() == 0) ? 1 : -1);
         addCastlings(state.isWhiteLongCastling(), state.isWhiteShortCastling(),
                 state.isBlackLongCastling(), state.isBlackShortCastling());
         addAisle(state.getAislePos());

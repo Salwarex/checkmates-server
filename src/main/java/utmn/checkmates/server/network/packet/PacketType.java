@@ -97,6 +97,10 @@ public enum PacketType {
         Position from = Position.getByByte(input.getFrom());
         Position to = Position.getByByte(input.getTo());
 
+        Logger.out("MOVE from visual=(%d,%d) byte=%d, to visual=(%d,%d) byte=%d"
+                .formatted(from.getColumn(), from.getRow(), input.getFrom(),
+                        to.getColumn(), to.getRow(), input.getTo()));
+
         try{
             gameState.move(from, to);
         } catch (ServerSideException e) {

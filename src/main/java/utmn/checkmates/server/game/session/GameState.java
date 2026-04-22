@@ -12,7 +12,7 @@ public class GameState {
     private boolean blackLongCastling;
     private boolean blackShortCastling;
 
-    private int currentSide;
+    private int lastSide;
     private int subStep;
     private int step;
     private Position aislePos;
@@ -35,7 +35,7 @@ public class GameState {
         this.whiteShortCastling = reader.castlingAvailable(true, false);
         this.blackLongCastling = reader.castlingAvailable(false, true);
         this.blackShortCastling = reader.castlingAvailable(true, true);
-        this.currentSide = reader.currentSide();
+        this.lastSide = reader.currentSide();
         this.aislePos = reader.getPositionBetweenTwoSquaresPawnStep();
         this.subStep = reader.getSubStep();
         this.step = reader.getStep();
@@ -61,8 +61,8 @@ public class GameState {
         return blackShortCastling;
     }
 
-    public int getCurrentSide() {
-        return currentSide;
+    public int getLastSide() {
+        return lastSide;
     }
 
     public int getSubStep() {
@@ -78,7 +78,7 @@ public class GameState {
     }
 
     public void move(Position from, Position to) throws GameRuleException, ServerSideException {
-        Logger.log("GameState", "move", "Инициировано движение фигуры");
+        Logger.log("GameState", "move", "Инициировано движение фигуры. ");
         if(from == null || to == null)
         {
             Logger.log("GameState", "move", "Движение прервано: один из входных параметров равен null");
@@ -112,12 +112,12 @@ public class GameState {
             throw new GameRuleException("Ход из данной клетки невозможен: В настоящий момент клетка пуста!");
         }
 
-        if((figure.isWhite() && currentSide == 1) ||
-                (!figure.isWhite() && currentSide == 0))
-        {
-            Logger.log("GameState", "move", "Движение прервано: Игрок попытался сходить не в свой ход");
-            throw new GameRuleException("Ход невозможен: Сейчас не ваш ход!");
-        }
+//        if((figure.isWhite() && lastSide == 0) ||
+//                (!figure.isWhite() && lastSide == 1))
+//        {
+//            Logger.log("GameState", "move", "Движение прервано: Игрок попытался сходить не в свой ход. currentSide : %d, playerWhite : %b".formatted(lastSide, figure.isWhite()));
+//            throw new GameRuleException("Ход невозможен: Сейчас не ваш ход!");
+//        }
 
         Desk.Square squareTo = desk.getSquare(to);
         if(squareTo.getFigure() != null

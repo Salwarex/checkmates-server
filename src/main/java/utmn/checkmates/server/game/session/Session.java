@@ -26,7 +26,7 @@ public class Session implements Closeable {
     private final ConcurrentMap<String, Integer> keysId = new ConcurrentHashMap<>();
     private int current = 0;
 
-    private final static int TIME_DELAY_GAME_START = 10;
+    private final static int TIME_DELAY_GAME_START = 2;
 
     private GameState gameState;
 
