@@ -13,6 +13,7 @@ import utmn.checkmates.server.utility.logger.Logger;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -44,13 +45,30 @@ public class Session implements Closeable {
     }
 
     public void add(SessionConnection connection){
-        if(connections.containsKey(connection.key())) return;
+        Socket clientSocket = connection.getClientSocket();
+        if(connections.containsKey(connection.key())) {
+            //
+            Logger.log("Session", "add",
+                    "Сессия %s:%d уже существует!".formatted(clientSocket.getInetAddress(), clientSocket.getPort()));
+            //
+            return;
+        }
         connections.put(connection.key(), connection);
+
+        //
+        Logger.log("Session", "add",
+                "Сессия %s:%d добавлена в основной пул!".formatted(clientSocket.getInetAddress(), clientSocket.getPort()));
+        //
 
         int id = current;
         current++;
         idKeys.put(id, connection.key());
         keysId.put(connection.key(), id);
+
+        //
+        Logger.log("Session", "add",
+                "Сессия %s:%d добавлена в добавочные пулы!".formatted(clientSocket.getInetAddress(), clientSocket.getPort()));
+        //
 
         //
         Logger.log(this.getClass().getSimpleName(), "add",

@@ -20,6 +20,7 @@ public class SessionConnection implements AutoCloseable{
     private volatile boolean active = true;
 
     public SessionConnection() {
+        this.player = new Player("");
     }
 
     public SessionConnection(Session session, Socket socket) throws IOException {

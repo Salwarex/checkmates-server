@@ -46,21 +46,88 @@ public class SessionConnectionsManager {
             throws IOException {
         Session session = sessions.get(connectionPacket.getSessionId());//обработать возможные ошибки
 
+        //
+        Logger.log("SessionConnectionManager", "openSessionConnection",
+                "Идёт открытие сессии %s:%d".formatted(clientSocket.getInetAddress(), clientSocket.getPort()));
+        //
+
         SessionConnection connection = new SessionConnection();
+        //
+        Logger.log("SessionConnectionManager", "openSessionConnection",
+                "Открытие сессии %s:%d: Создан SessionConnection через конструктор".formatted(clientSocket.getInetAddress(), clientSocket.getPort()));
+        //
         connection.setSession(session);
+        //
+        Logger.log("SessionConnectionManager", "openSessionConnection",
+                "Открытие сессии %s:%d: Присвоено поле Session".formatted(clientSocket.getInetAddress(), clientSocket.getPort()));
+        //
         connection.setClientSocket(clientSocket);
+        //
+        Logger.log("SessionConnectionManager", "openSessionConnection",
+                "Открытие сессии %s:%d: Присвоено поле ClientSocket".formatted(clientSocket.getInetAddress(), clientSocket.getPort()));
+        //
         connection.setRawIn(rawIn);
+        //
+        Logger.log("SessionConnectionManager", "openSessionConnection",
+                "Открытие сессии %s:%d: Присвоено поле RawIn".formatted(clientSocket.getInetAddress(), clientSocket.getPort()));
+        //
         connection.setIn(in);
+        //
+        Logger.log("SessionConnectionManager", "openSessionConnection",
+                "Открытие сессии %s:%d: Присвоено поле In".formatted(clientSocket.getInetAddress(), clientSocket.getPort()));
+        //
         connection.setOut(out);
+        //
+        Logger.log("SessionConnectionManager", "openSessionConnection",
+                "Открытие сессии %s:%d: Присвоено поле Out".formatted(clientSocket.getInetAddress(), clientSocket.getPort()));
+        //
         connection.setActive(true);
+        //
+        Logger.log("SessionConnectionManager", "openSessionConnection",
+                "Открытие сессии %s:%d: Присвоено поле Active".formatted(clientSocket.getInetAddress(), clientSocket.getPort()));
+        //
         connection.setPlayerName(connectionPacket.getPlayerName());
+        //
+        Logger.log("SessionConnectionManager", "openSessionConnection",
+                "Открытие сессии %s:%d: Присвоено поле PlayerName".formatted(clientSocket.getInetAddress(), clientSocket.getPort()));
+        //
+
+        //
+        Logger.log("SessionConnectionManager", "openSessionConnection",
+                "Открытие сессии: Сессии %s:%d присвоены данные. Добавляется в сессионный пул".formatted(clientSocket.getInetAddress(), clientSocket.getPort()));
+        //
 
         session.add(connection);
+
+        //
+        Logger.log("SessionConnectionManager", "openSessionConnection",
+                "Открытие сессии: Сессии %s:%d добавлена в сессионный пул".formatted(clientSocket.getInetAddress(), clientSocket.getPort()));
+        //
+
         connections.put(clientSocket, connection);
+
+        //
+        Logger.log("SessionConnectionManager", "openSessionConnection",
+                "Открытие сессии: Сессии %s:%d добавлена в пул".formatted(clientSocket.getInetAddress(), clientSocket.getPort()));
+        //
 
         connectionChecker.update(connection);
 
+        //
+        Logger.log("SessionConnectionManager", "openSessionConnection",
+                "Открытие сессии: Сессия %s:%d обновлена".formatted(clientSocket.getInetAddress(), clientSocket.getPort()));
+        //
+
         clientPool.submit(() -> handleConnection(connection));
+        //
+        Logger.log("SessionConnectionManager", "openSessionConnection",
+                "Открытие сессии: Обработчик %s:%d отправлен в пул потоков".formatted(clientSocket.getInetAddress(), clientSocket.getPort()));
+        //
+
+        //
+        Logger.log("SessionConnectionManager", "openSessionConnection",
+                "Сессия %s:%d открыта!".formatted(clientSocket.getInetAddress(), clientSocket.getPort()));
+        //
         return connection;
     }
 
