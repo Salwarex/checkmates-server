@@ -1,5 +1,7 @@
 package utmn.checkmates.server.game.session;
 
+import utmn.checkmates.server.utility.logger.Logger;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +14,7 @@ public class Desk {
 
     public Desk(List<Row> rows) {
         this.rows = rows;
+        Logger.log("Desk", "Constructor", "Доска инициализирована! Количество строк : %d".formatted(rows.size()));
     }
 
     public static class Row{
@@ -19,6 +22,7 @@ public class Desk {
 
         public Row(List<Square> squares){
             this.squares = squares;
+            Logger.log("Desk.Row", "Constructor", "Строка инициализирована! Количество клеток : %d".formatted(squares.size()));
         }
 
         public Figure getFigureAt(int i){
@@ -38,6 +42,8 @@ public class Desk {
         public Square(Position position, Figure figure) {
             this.pos = position;
             this.figure = figure;
+
+            Logger.log("Desk.Square", "Constructor", "Клетка %s инициализирована! Фигура : %s".formatted(pos, figure == null ? "null" : figure));
             if(!PositionMatcher.put(pos, this))
                 throw new RuntimeException("В ходе генерации поля возникла дублирующая клетка!");
         }
@@ -51,6 +57,8 @@ public class Desk {
         }
 
         public void setFigure(Figure figure) {
+            Logger.log("Desk", "setFigure", "Тип фигуры в клетке %s изменен на %s"
+                    .formatted(pos, figure == null ? "null" : figure));
             this.figure = figure;
         }
     }
@@ -70,6 +78,7 @@ public class Desk {
         }
 
         public static void clear(){
+            Logger.log("Desk.PositionMatcher", "clear", "Кэш совмещения PositionMatcher очищается!");
             figureMap.clear();
         }
     }

@@ -6,10 +6,12 @@ import utmn.checkmates.server.network.packet.input.*;
 import utmn.checkmates.server.network.packet.output.*;
 import utmn.checkmates.server.network.tcp.SessionConnection;
 import utmn.checkmates.server.network.tcp.SessionConnectionsManager;
+import utmn.checkmates.server.utility.Timer;
 import utmn.checkmates.server.utility.logger.Logger;
 
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.List;
 
 public enum PacketType {
@@ -43,7 +45,39 @@ public enum PacketType {
     S0010((byte) 0b0010, PlayerUpdatePacket.class, packet -> {
         if(!(packet instanceof PlayerUpdatePacket input))
             throw new HandlingException("Представленный пакет не соответствует необходимому типу!");
-        return unknownHandlerError(packet.getSocket());
+        int seconds = 10;
+
+        Socket socket = input.getSocket();
+        List<Socket> response = List.of();
+
+        SessionConnectionsManager manager = Application.getServer().getConnectionsManager();
+        Session session = manager.getSessions().get(input.getSessionId());
+
+        Player player = session.getById(input.getClientId()).getPlayer();
+
+        List<OutputPacket> replies = new ArrayList<>();
+
+        if(player.isReady() != input.isReady()){
+            boolean beforeChange = session.allReady();
+
+            player.setReady(input.isReady());
+            replies.add(new OpponentUpdatePacket(response, input.isReady(), true));
+
+            if(session.allReady()){
+                Logger.log("PacketType", "lambda-S0010", "Все игроки объявили о готовности!"
+                        .formatted(input.getSessionId(), input.getClientId()));
+                replies.add(new GameStartPacket(response, seconds));
+                session.delayedStart();
+            }
+            else if (beforeChange){
+                Logger.log("PacketType", "lambda-S0010", "Текущий запуск игры для сессии #%d отменена по причине неготовности игрока #%d"
+                        .formatted(input.getSessionId(), input.getClientId()));
+                replies.add(new GameStartPacket(response, -1));
+            }
+        }
+        else Logger.log("PacketType", "lambda-S0010", "Статус игрока не был изменен: Предоставленный статус идентичен текущему!");
+
+        return replies;
     }),
     
     //зарезервирован

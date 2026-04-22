@@ -1,14 +1,19 @@
 package utmn.checkmates.server.game.session;
 
 import utmn.checkmates.server.Application;
+import utmn.checkmates.server.network.packet.output.ExceptionPacket;
+import utmn.checkmates.server.network.packet.output.GameStartPacket;
+import utmn.checkmates.server.network.packet.output.GameUpdatePacket;
 import utmn.checkmates.server.network.packet.output.OutputPacket;
 import utmn.checkmates.server.network.tcp.SessionConnection;
 import utmn.checkmates.server.utility.FormatUtils;
+import utmn.checkmates.server.utility.Timer;
 import utmn.checkmates.server.utility.logger.Logger;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -16,10 +21,11 @@ public class Session implements Closeable {
     private final int sessionId;
     private final ConcurrentMap<String, SessionConnection> connections = new ConcurrentHashMap<>();
 
-    //позор? :О
     private final ConcurrentMap<Integer, String> idKeys = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, Integer> keysId = new ConcurrentHashMap<>();
     private int current = 0;
+
+    private final static int TIME_DELAY_GAME_START = 10;
 
     private GameState gameState;
 
@@ -101,6 +107,48 @@ public class Session implements Closeable {
         idKeys.remove(id);
     }
 
+    public void delayedStart(){
+        Logger.log("Session", "delayedStart", "Запущен отложенный старт игры!");
+
+        Application.getPool().submit(new Timer(TIME_DELAY_GAME_START, () -> {
+            try{
+                start(false);
+            } catch (GameRuleException e) {
+                Logger.err("Возникла ошибка при запуске игры для сессии %d: %s"
+                        .formatted(sessionId, e.getMessage()));
+                broadcast(new GameStartPacket(List.of(), -1), null);
+                broadcast(new ExceptionPacket(List.of(), 5, "Возникла ошибка при запуске игры в сессии %d: %s"
+                                .formatted(sessionId, e.getMessage())),
+                        null);
+            }
+        }));
+    }
+
+    public void start(boolean forced) throws GameRuleException{
+        if(started)
+            throw new GameRuleException("Игра уже запущена.");
+        if(connections.size() <= 2)
+            throw new GameRuleException("Для начала игры требуется 2 и более игрока.");
+        if(!allReady() && !forced)
+            throw new GameRuleException("Для начала игры требуется, чтобы оба игрока были готовы!");
+
+        this.started = true;
+        Logger.out("Игра для сессии #%d успешно запущена!".formatted(sessionId));
+        broadcast(new GameStartPacket(List.of(), 0), null);
+        broadcast(new GameUpdatePacket(List.of(), gameState.getFen(), false, -1L, -1L),
+                null);
+    }
+
+    public boolean allReady(){
+        boolean result = true;
+        for(SessionConnection connection : connections.values()){
+            if(connection.isActive() && !connection.getPlayer().isReady()){
+                result = false;
+                break;
+            }
+        }
+        return result;
+    }
 
     public boolean sendToPlayer(String playerName, InetAddress address, OutputPacket packet) {
         SessionConnection session = connections.get(address.toString() + "@" + playerName);
@@ -140,27 +188,6 @@ public class Session implements Closeable {
             connections.clear();
             idKeys.clear();
             keysId.clear();
-        }
-    }
-
-
-    public static class Timer implements Runnable{
-        private long remainSeconds;
-
-        public Timer(long remainSeconds) {
-            this.remainSeconds = remainSeconds;
-        }
-
-        @Override
-        public void run() {
-            while(remainSeconds > 0){
-                try {
-                    remainSeconds -= 1_000L;
-                    Thread.sleep(1_000L);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
         }
     }
 

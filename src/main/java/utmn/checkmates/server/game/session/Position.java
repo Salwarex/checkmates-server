@@ -32,6 +32,13 @@ public class Position {
         return Objects.hash(row, column);
     }
 
+    @Override
+    public String toString() {
+        return "(" + row +
+                ", " + column +
+                ')';
+    }
+
     public static Position getPositionByNotation(String notation){
         if(notation.equals("-")) return null;
 
