@@ -117,7 +117,7 @@ public class NetworkServer{
                     for(OutputPacket packet : outputPackets){
                         if(packet instanceof ClientConnectionPacket clientConnection){
                             clientConnection.setClientId(id);
-                            clientConnection.setColor((byte)((id % 2 == 0 ? 0 : 1)));
+                            clientConnection.setColor((byte) connection.getPlayer().getColor());
                             NetworkTcp.sendPacket(out, clientConnection);
                             continue;
                         }

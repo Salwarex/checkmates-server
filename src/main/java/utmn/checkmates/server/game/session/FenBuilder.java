@@ -22,7 +22,7 @@ public class FenBuilder {
         //
         StringBuilder deskStrBuilder = new StringBuilder();
         for (int i = 0; i < 8; i++) {
-            StringBuilder row = new StringBuilder();
+            StringBuilder column = new StringBuilder();
             int currentEmptyLine = 0;
             for (int j = 0; j < 8; j++) {
                 Desk.Square square = desk.getSquare(new Position(i, j));
@@ -30,14 +30,14 @@ public class FenBuilder {
                 if(figure == null) currentEmptyLine++;
                 else{
                     if(currentEmptyLine > 0){
-                        row.append(currentEmptyLine);
+                        column.append(currentEmptyLine);
                         currentEmptyLine = 0;
                     }
-                    row.append(figure.isWhite() ? figure.getType().getFenWhite() : figure.getType().getFenBlack());
+                    column.append(figure.isWhite() ? figure.getType().getFenWhite() : figure.getType().getFenBlack());
                 }
             }
-            if(currentEmptyLine > 0) row.append(currentEmptyLine);
-            deskStrBuilder.append(row).append('/');
+            if(currentEmptyLine > 0) column.append(currentEmptyLine);
+            deskStrBuilder.append(column).append('/');
         }
 
         String deskStr = deskStrBuilder.toString();

@@ -2,25 +2,24 @@ package utmn.checkmates.server.game.session;
 
 import utmn.checkmates.server.utility.logger.Logger;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Desk {
-    private final List<Row> rows;
+    private final List<Column> columns;
     private final static String START_FEN_NOTATION
             = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-    public Desk(List<Row> rows) {
-        this.rows = rows;
-        Logger.log("Desk", "Constructor", "Доска инициализирована! Количество строк : %d".formatted(rows.size()));
+    public Desk(List<Column> columns) {
+        this.columns = columns;
+        Logger.log("Desk", "Constructor", "Доска инициализирована! Количество строк : %d".formatted(columns.size()));
     }
 
-    public static class Row{
+    public static class Column {
         private final List<Square> squares;
 
-        public Row(List<Square> squares){
+        public Column(List<Square> squares){
             this.squares = squares;
             Logger.log("Desk.Row", "Constructor", "Строка инициализирована! Количество клеток : %d".formatted(squares.size()));
         }
@@ -43,7 +42,11 @@ public class Desk {
             this.pos = position;
             this.figure = figure;
 
-            Logger.log("Desk.Square", "Constructor", "Клетка %s инициализирована! Фигура : %s".formatted(pos, figure == null ? "null" : figure.getType()));
+            //Logger.log("Desk.Square", "Constructor", "Клетка %s инициализирована! Фигура : %s".formatted(pos, figure == null ? "null" : figure.getType()));
+            System.out.printf(
+                    "[%s,%d,%d]" + (position.getColumn() == 7 ? "%n" : ""), figure != null ? (figure.isWhite() ? figure.getType().getFenWhite() : figure.getType().getFenBlack()) : "-",
+                    position.getRow(),
+                    position.getColumn());
             if(!PositionMatcher.put(pos, this))
                 throw new RuntimeException("В ходе генерации поля возникла дублирующая клетка!");
         }

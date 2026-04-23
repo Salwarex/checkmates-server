@@ -145,8 +145,8 @@ public class Session implements Closeable {
     public void start(boolean forced) throws GameRuleException{
         if(started)
             throw new GameRuleException("Игра уже запущена.");
-//        if(connections.size() <= 2)
-//            throw new GameRuleException("Для начала игры требуется 2 и более игрока.");
+        if(connections.size() < 2)
+            throw new GameRuleException("Для начала игры требуется 2 и более игрока.");
         if(!allReady() && !forced)
             throw new GameRuleException("Для начала игры требуется, чтобы оба игрока были готовы!");
 
@@ -166,6 +166,7 @@ public class Session implements Closeable {
     }
 
     public boolean allReady(){
+        if(connections.size() < 2) return false;
         boolean result = true;
         for(SessionConnection connection : connections.values()){
             if(connection.isActive() && !connection.getPlayer().isReady()){
@@ -223,5 +224,11 @@ public class Session implements Closeable {
 
     public void setGameState(GameState gameState) {
         this.gameState = gameState;
+    }
+
+    public int nextColor(){
+        int size = connections.size();
+        if(size <= 1) return size;
+        else return -1;
     }
 }

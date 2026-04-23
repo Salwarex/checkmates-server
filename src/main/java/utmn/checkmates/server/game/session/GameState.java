@@ -1,5 +1,6 @@
 package utmn.checkmates.server.game.session;
 
+import utmn.checkmates.server.network.tcp.SessionConnection;
 import utmn.checkmates.server.utility.logger.Logger;
 
 public class GameState {
@@ -30,12 +31,12 @@ public class GameState {
                 .formatted(fen));
 
         reader = new FenReader(fen);
-        this.desk = new Desk(reader.getRows());
+        this.desk = new Desk(reader.getColumns());
         this.whiteLongCastling = reader.castlingAvailable(false, false);
         this.whiteShortCastling = reader.castlingAvailable(true, false);
         this.blackLongCastling = reader.castlingAvailable(false, true);
         this.blackShortCastling = reader.castlingAvailable(true, true);
-        this.lastSide = reader.currentSide() == 0 ? 1 : 0;
+        this.lastSide = reader.currentSide();
         this.aislePos = reader.getPositionBetweenTwoSquaresPawnStep();
         this.subStep = reader.getSubStep();
         this.step = reader.getStep();
@@ -77,7 +78,7 @@ public class GameState {
         return aislePos;
     }
 
-    public void move(Position from, Position to) throws GameRuleException, ServerSideException {
+    public void move(SessionConnection connection, Position from, Position to) throws GameRuleException, ServerSideException {
         Logger.log("GameState", "move", "Инициировано движение фигуры. ");
         if(from == null || to == null)
         {
@@ -89,10 +90,10 @@ public class GameState {
             throw new GameRuleException("Ход в данную клетку невозможен: Вы не можете сходить на место, на котором уже находитесь!");
         }
 
-        if(from.getRow() > 7 || from.getColumn() > 7
-                || to.getRow() > 7 || to.getColumn() > 7
-                || from.getRow() < 0 || from.getColumn() < 0
-                || to.getRow() < 0 || to.getColumn() < 0)
+        if(from.getColumn() > 7 || from.getRow() > 7
+                || to.getColumn() > 7 || to.getRow() > 7
+                || from.getColumn() < 0 || from.getRow() < 0
+                || to.getColumn() < 0 || to.getRow() < 0)
         {
             Logger.log("GameState", "move", "Движение прервано: Ход указан на клетку, выходящую за пределы доски");
             throw new GameRuleException("Ход из данной клетки или в данную клетку невозможен: На вход передано значение, выходящее за пределы игровой доски (8x8)!");
@@ -112,21 +113,29 @@ public class GameState {
             throw new GameRuleException("Ход из данной клетки невозможен: В настоящий момент клетка пуста!");
         }
 
+        if((figure.isWhite() && connection.getPlayer().getColor() == 1)
+                || (!figure.isWhite() && connection.getPlayer().getColor() == 0)){
+            Logger.log("GameState", "move", "Движение прервано: Игрок попытался сходить не своей фигурой. Цвет фигуры, которой походили белый? %b; Сторона игрока: %d"
+                    .formatted(figure.isWhite(), connection.getPlayer().getColor()));
+            throw new GameRuleException("Ход невозможен: Сейчас не ваш ход!");
+        }
+
         if((figure.isWhite() && lastSide == 1) || (!figure.isWhite() && lastSide == 0)) {
-            Logger.log("GameState", "move", "Движение прервано: Игрок попытался сходить не в свой ход.");
+            Logger.log("GameState", "move", "Движение прервано: Игрок попытался сходить не в свой ход. Цвет фигуры, которой походили белый? %b; Последняя сторона, которой походили: %d"
+                    .formatted(figure.isWhite(), lastSide));
             throw new GameRuleException("Ход невозможен: Сейчас не ваш ход!");
         }
 
         Desk.Square squareTo = desk.getSquare(to);
-        if(squareTo.getFigure() != null
-                && ((squareTo.getFigure().isWhite() && squareFrom.getFigure().isWhite())
-                || ((!squareTo.getFigure().isWhite() && !squareFrom.getFigure().isWhite()))))
-        {
-            Logger.log("GameState", "move", "Движение прервано: игрок попытался сходить в клетку, где стоит другая его фигура.");
-            throw new GameRuleException("Ход в данную клетку невозможен! В данной клетке уже стоит другая фигура вашего цвета!");
-        }
+//        if(squareTo.getFigure() != null
+//                && ((squareTo.getFigure().isWhite() && squareFrom.getFigure().isWhite())
+//                || ((!squareTo.getFigure().isWhite() && !squareFrom.getFigure().isWhite()))))
+//        {
+//            Logger.log("GameState", "move", "Движение прервано: игрок попытался сходить в клетку, где стоит другая его фигура.");
+//            throw new GameRuleException("Ход в данную клетку невозможен! В данной клетке уже стоит другая фигура вашего цвета!");
+//        }
 
-        if(!StepModelManager.isAvailable(figure.getType(), figure.isWhite() ? 0 : 1, from, to)){
+        if(!StepModelManager.isAvailable(figure.getType(), figure.isWhite() ? 0 : 1, from, to, this)){
             Logger.log("GameState", "move", "Движение прервано: Был произведен ход в клетку, которая не соответствует модели хождения данного типа фигуры");
             throw new GameRuleException("Ход в данную клетку невозможен! Данная фигура имеет другую модель хождения.");
         }

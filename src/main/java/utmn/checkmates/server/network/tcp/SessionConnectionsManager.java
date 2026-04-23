@@ -91,6 +91,11 @@ public class SessionConnectionsManager {
         Logger.log("SessionConnectionManager", "openSessionConnection",
                 "Открытие сессии %s:%d: Присвоено поле PlayerName".formatted(clientSocket.getInetAddress(), clientSocket.getPort()));
         //
+        connection.getPlayer().setColor(session.nextColor());
+        //
+        Logger.log("SessionConnectionManager", "openSessionConnection",
+                "Открытие сессии %s:%d: Присвоено поле Player.Color".formatted(clientSocket.getInetAddress(), clientSocket.getPort()));
+        //
 
         //
         Logger.log("SessionConnectionManager", "openSessionConnection",

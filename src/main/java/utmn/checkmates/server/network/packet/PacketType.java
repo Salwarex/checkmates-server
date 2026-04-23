@@ -4,12 +4,9 @@ import utmn.checkmates.server.Application;
 import utmn.checkmates.server.game.session.*;
 import utmn.checkmates.server.network.packet.input.*;
 import utmn.checkmates.server.network.packet.output.*;
-import utmn.checkmates.server.network.tcp.SessionConnection;
 import utmn.checkmates.server.network.tcp.SessionConnectionsManager;
-import utmn.checkmates.server.utility.Timer;
 import utmn.checkmates.server.utility.logger.Logger;
 
-import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +34,7 @@ public enum PacketType {
         SessionConnectionsManager manager = Application.getServer().getConnectionsManager();
         Session session = manager.getSessions().get(input.getSessionId());
 
-        return List.of(new ClientConnectionPacket(response, -1, (byte) 0),
+        return List.of(new ClientConnectionPacket(response, -1, (byte) session.nextColor()),
                 new OpponentUpdatePacket(List.of(), false, true));
     }),
     
@@ -98,11 +95,11 @@ public enum PacketType {
         Position to = Position.getByByte(input.getTo());
 
         Logger.out("MOVE from visual=(%d,%d) byte=%d, to visual=(%d,%d) byte=%d"
-                .formatted(from.getColumn(), from.getRow(), input.getFrom(),
-                        to.getColumn(), to.getRow(), input.getTo()));
+                .formatted(from.getRow(), from.getColumn(), input.getFrom(),
+                        to.getRow(), to.getColumn(), input.getTo()));
 
         try{
-            gameState.move(from, to);
+            gameState.move(session.getById(input.getClientId()), from, to);
         } catch (ServerSideException e) {
             return List.of(new ExceptionPacket(
                     List.of(socket),

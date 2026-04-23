@@ -5,7 +5,7 @@ import java.util.List;
 
 public class FenReader {
     private final String fen;
-    private final String[] rows;
+    private final String[] columns;
 
     private final String nextSide;
     private final String castlings;
@@ -23,7 +23,7 @@ public class FenReader {
 
         this.fen = fen;
         String[] firstSplit = fen.split(" ");
-        this.rows = firstSplit[0].split("/");
+        this.columns = firstSplit[0].split("/");
         this.nextSide = firstSplit[1];
         this.castlings = firstSplit[2];
         this.pawnTwoSquares = firstSplit[3];
@@ -61,18 +61,18 @@ public class FenReader {
         return fen;
     }
 
-    List<Desk.Row> getRows(){
-        List<Desk.Row> rows = new ArrayList<>();
+    List<Desk.Column> getColumns(){
+        List<Desk.Column> columns = new ArrayList<>();
         for (int i = 0; i < 8; i++) {
             List<Desk.Square> squares = getSquares(i);
-            Desk.Row row = new Desk.Row(squares);
-            rows.add(row);
+            Desk.Column column = new Desk.Column(squares);
+            columns.add(column);
         }
-        return rows;
+        return columns;
     }
 
-    List<Desk.Square> getSquares(int rowIndex){
-        String fenState = rows[rowIndex];
+    List<Desk.Square> getSquares(int columnIndex){
+        String fenState = columns[columnIndex];
         List<Desk.Square> squares = new ArrayList<>();
         int actualIndex = 0;
 
@@ -83,14 +83,14 @@ public class FenReader {
             if(Character.isDigit(character)){
                 byte b = Byte.parseByte(c);
                 for(int j = 0; j < b; j++){
-                    squares.add(new Desk.Square(new Position(rowIndex, actualIndex), null));
+                    squares.add(new Desk.Square(new Position(columnIndex, actualIndex), null));
                     actualIndex++;
                 }
             } else {
                 FigureType type = FigureType.getByFen(c);
                 boolean white = Character.isUpperCase(character);
                 Figure figure = new Figure(type, white);
-                squares.add(new Desk.Square(new Position(rowIndex, actualIndex), figure));
+                squares.add(new Desk.Square(new Position(columnIndex, actualIndex), figure));
                 actualIndex++;
             }
         }
