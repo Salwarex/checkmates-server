@@ -2,16 +2,6 @@ package utmn.checkmates.server.game.session;
 
 public class StepModelManager {
 
-    /**
-     * Проверяет, возможен ли ход для заданной фигуры с учётом правил шахмат
-     * (без учёта состояния доски: шах, блокировка пути, наличие фигур для взятия)
-     *
-     * @param type тип фигуры
-     * @param color цвет фигуры: 0 = белые (движутся к строке 8), 1 = чёрные (движутся к строке 1)
-     * @param from начальная позиция
-     * @param to конечная позиция
-     * @return true если ход геометрически возможен по правилам шахмат
-     */
     public static boolean isAvailable(FigureType type, int color, Position from, Position to){
         if (from == null || to == null || from.equals(to)) {
             return false;
@@ -34,10 +24,7 @@ public class StepModelManager {
                 return rowDiff <= 1 && colDiff <= 1 && (rowDiff > 0 || colDiff > 0);
 
             case QUEEN:
-                if (fromRow == toRow || fromCol == toCol) {
-                    return true;
-                }
-                return rowDiff == colDiff;
+                return (fromRow == toRow || fromCol == toCol) || (rowDiff == colDiff);
 
             case ROOK:
                 return fromRow == toRow || fromCol == toCol;
@@ -56,23 +43,14 @@ public class StepModelManager {
         }
     }
 
-    /**
-     * Вспомогательный метод: проверка что позиция находится на доске
-     */
     private static boolean isOnBoard(int row, int col) {
-        return row >= 1 && row <= 8 && col >= 0 && col <= 7;
+        return row >= 0 && row <= 7 && col >= 0 && col <= 7;
     }
 
-    /**
-     * Вспомогательный метод: проверка валидности хода пешки
-     *
-     * @param color 0 = белые (движение +1 по строке), 1 = чёрные (движение -1)
-     */
     private static boolean isPawnMoveValid(int color, int fromRow, int fromCol, int toRow, int toCol) {
-        int direction = (color == 0) ? 1 : -1;  // Направление движения
-        int startRow = (color == 0) ? 2 : 7;     // Стартовая строка для двойного хода
+        int direction = (color == 0) ? 1 : -1;
 
-        int colDiff = Math.abs(toCol - fromCol);
+        int startRow = (color == 0) ? 6 : 1;
 
         if (fromCol == toCol) {
             if (toRow == fromRow + direction) {
@@ -84,10 +62,7 @@ public class StepModelManager {
             return false;
         }
 
-        if (colDiff == 1 && toRow == fromRow + direction) {
-            return true;
-        }
-
-        return false;
+        int colDiff = Math.abs(toCol - fromCol);
+        return colDiff == 1 && toRow == fromRow + direction;
     }
 }

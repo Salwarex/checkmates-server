@@ -5,11 +5,12 @@ import utmn.checkmates.server.utility.logger.Logger;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ConnectionChecker implements Runnable{
     private final NetworkServer server;
-    private Map<SessionConnection, Long> lastTimes = new HashMap<>();
-    private boolean active = true;
+    private Map<SessionConnection, Long> lastTimes = new ConcurrentHashMap<>();
+    private volatile boolean active = true;
     private final static long MS_DELAY = 30L * 1000L;
     private final static long TIMEOUT = MS_DELAY * 2;
 
@@ -38,30 +39,36 @@ public class ConnectionChecker implements Runnable{
     @Override
     public void run() {
         while (active){
-            int deadSessions = 0;
-            Map<SessionConnection, Long> afterCheck = new HashMap<>();
+            try{
+                int deadSessions = 0;
+                Map<SessionConnection, Long> afterCheck = new HashMap<>();
 
-            for(SessionConnection connection : lastTimes.keySet()){
-                if(System.currentTimeMillis() - lastTimes.get(connection) >= TIMEOUT){
-                    deadSessions++;
-                    Socket socket = connection.getClientSocket();
+                for(SessionConnection connection : lastTimes.keySet()){
+                    if(System.currentTimeMillis() - lastTimes.get(connection) >= TIMEOUT){
+                        deadSessions++;
+                        Socket socket = connection.getClientSocket();
 
-                    Logger.wrn("Превышено время ожидания запроса к %s:%d (Игрок %s)"
-                            .formatted(socket.getInetAddress(), socket.getPort(), connection.getPlayerName()));
+                        Logger.wrn("Превышено время ожидания запроса к %s:%d (Игрок %s)"
+                                .formatted(socket.getInetAddress(), socket.getPort(), connection.getPlayerName()));
 
-                    server.getConnectionsManager().closeSessionConnection(socket);
-                }else{
-                    afterCheck.put(connection, lastTimes.get(connection));
+                        lastTimes.remove(connection);
+
+                        server.getConnectionsManager().closeSessionConnection(socket);
+                    }else{
+                        afterCheck.put(connection, lastTimes.get(connection));
+                    }
                 }
-            }
 
-            lastTimes = afterCheck;
+                lastTimes = afterCheck;
 
-            Logger.log(this.getClass().getSimpleName(), "run", "Закрыто мёртвых соединений: " + deadSessions);
+                Logger.log(this.getClass().getSimpleName(), "run", "Закрыто мёртвых соединений: " + deadSessions);
 
-            try {
-                Thread.sleep(MS_DELAY);
-            } catch (InterruptedException e) {
+                try {
+                    Thread.sleep(MS_DELAY);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }catch (Exception e){
                 throw new RuntimeException(e);
             }
         }

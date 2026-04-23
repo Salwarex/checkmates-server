@@ -35,7 +35,7 @@ public class GameState {
         this.whiteShortCastling = reader.castlingAvailable(true, false);
         this.blackLongCastling = reader.castlingAvailable(false, true);
         this.blackShortCastling = reader.castlingAvailable(true, true);
-        this.lastSide = reader.currentSide();
+        this.lastSide = reader.currentSide() == 0 ? 1 : 0;
         this.aislePos = reader.getPositionBetweenTwoSquaresPawnStep();
         this.subStep = reader.getSubStep();
         this.step = reader.getStep();
@@ -112,12 +112,10 @@ public class GameState {
             throw new GameRuleException("Ход из данной клетки невозможен: В настоящий момент клетка пуста!");
         }
 
-//        if((figure.isWhite() && lastSide == 0) ||
-//                (!figure.isWhite() && lastSide == 1))
-//        {
-//            Logger.log("GameState", "move", "Движение прервано: Игрок попытался сходить не в свой ход. currentSide : %d, playerWhite : %b".formatted(lastSide, figure.isWhite()));
-//            throw new GameRuleException("Ход невозможен: Сейчас не ваш ход!");
-//        }
+        if((figure.isWhite() && lastSide == 1) || (!figure.isWhite() && lastSide == 0)) {
+            Logger.log("GameState", "move", "Движение прервано: Игрок попытался сходить не в свой ход.");
+            throw new GameRuleException("Ход невозможен: Сейчас не ваш ход!");
+        }
 
         Desk.Square squareTo = desk.getSquare(to);
         if(squareTo.getFigure() != null
@@ -135,6 +133,8 @@ public class GameState {
 
         squareFrom.setFigure(null);
         squareTo.setFigure(figure);
+
+        this.lastSide = lastSide == 0 ? 1 : 0;
         Logger.log("GameState", "move", "Был совершен ход из %s в %s".formatted(from, to));
     }
 

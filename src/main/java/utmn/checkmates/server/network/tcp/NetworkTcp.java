@@ -11,47 +11,52 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 public class NetworkTcp {
-    static InputMessage readNext(InputStream rawIn, BufferedReader in) throws IOException {
-        //
-        Logger.log("NetworkTcp", "readNext",
-                "Ожидается чтение пакета...");
-        //
-
-        if (in == null) {
+    static InputMessage readNext(InputStream rawIn, BufferedReader in) {
+        try{
+            //
             Logger.log("NetworkTcp", "readNext",
-                    "Входные данные пусты!");
-            return null;
-        }
+                    "Ожидается чтение пакета...");
+            //
 
-        int typeInt = rawIn.read(); //блокирует поток и сначала ждёт число
-        Logger.log("NetworkTcp", "readNext",
-                "Получен бит типизации. Сырые данные: %d".formatted(typeInt));
+            if (in == null) {
+                Logger.log("NetworkTcp", "readNext",
+                        "Входные данные пусты!");
+                return null;
+            }
 
-        String json = in.readLine(); //блокирует поток и ждёт следующего сообщения, которо
-
-        Logger.log("NetworkTcp", "readNext",
-                "Получено сообщение. Сырые данные: %s".formatted(json));
-
-        if (typeInt < 0 || typeInt > 15) {
-            Logger.err("Пакет не соответствует протоколу взаимодействия: Байт типизации (первые 8 бит пакета) не соответствует протоколу (Ограничение: 00000000 - 00001111)");
-            return null;
-        }
-
-        if (json == null) {
+            int typeInt = rawIn.read(); //блокирует поток и сначала ждёт число
             Logger.log("NetworkTcp", "readNext",
-                    "Пакет не соответствует протоколу взаимодействия: отсутствует JSON-содержание");
-            return null;
+                    "Получен бит типизации. Сырые данные: %d".formatted(typeInt));
+
+            String json = in.readLine(); //блокирует поток и ждёт следующего сообщения, которо
+
+            Logger.log("NetworkTcp", "readNext",
+                    "Получено сообщение. Сырые данные: %s".formatted(json));
+
+            if (typeInt < 0 || typeInt > 15) {
+                Logger.err("Пакет не соответствует протоколу взаимодействия: Байт типизации (первые 8 бит пакета) не соответствует протоколу (Ограничение: 00000000 - 00001111)");
+                return null;
+            }
+
+            if (json == null) {
+                Logger.log("NetworkTcp", "readNext",
+                        "Пакет не соответствует протоколу взаимодействия: отсутствует JSON-содержание");
+                return null;
+            }
+
+            //
+            Logger.log("NetworkTcp", "readNext",
+                    "Пакет успешно прочитан: Тип: %d, JSON: %s".formatted(typeInt, json));
+            //
+
+            return new InputMessage((byte) typeInt, json);
+        }catch (Exception e){
+            throw new RuntimeException(e);
         }
 
-        //
-        Logger.log("NetworkTcp", "readNext",
-                "Пакет успешно прочитан: Тип: %d, JSON: %s".formatted(typeInt, json));
-        //
-
-        return new InputMessage((byte) typeInt, json);
     }
 
-    public static InputMessage readNext(SessionConnection connection) throws IOException {
+    public static InputMessage readNext(SessionConnection connection)  {
         return readNext(connection.getRawIn(), connection.getIn());
     }
 
