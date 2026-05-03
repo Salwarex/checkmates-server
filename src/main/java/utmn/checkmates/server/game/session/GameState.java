@@ -7,7 +7,6 @@ public class GameState {
     private FenReader reader;
     private Desk desk;
 
-    //Рокировки
     private boolean whiteLongCastling;
     private boolean whiteShortCastling;
     private boolean blackLongCastling;
@@ -127,21 +126,31 @@ public class GameState {
         }
 
         Desk.Square squareTo = desk.getSquare(to);
-//        if(squareTo.getFigure() != null
-//                && ((squareTo.getFigure().isWhite() && squareFrom.getFigure().isWhite())
-//                || ((!squareTo.getFigure().isWhite() && !squareFrom.getFigure().isWhite()))))
-//        {
-//            Logger.log("GameState", "move", "Движение прервано: игрок попытался сходить в клетку, где стоит другая его фигура.");
-//            throw new GameRuleException("Ход в данную клетку невозможен! В данной клетке уже стоит другая фигура вашего цвета!");
-//        }
 
         if(!StepModelManager.isAvailable(figure.getType(), figure.isWhite() ? 0 : 1, from, to, this)){
             Logger.log("GameState", "move", "Движение прервано: Был произведен ход в клетку, которая не соответствует модели хождения данного типа фигуры");
             throw new GameRuleException("Ход в данную клетку невозможен! Данная фигура имеет другую модель хождения.");
         }
 
+        if (figure.getType() == FigureType.PAWN && squareTo.getFigure() == null) {
+            Position ep = this.aislePos;
+            if (ep != null && ep.equals(to)) {
+                Position capturedPos = new Position(from.getRow(), to.getColumn());
+                Desk.Square capturedSquare = desk.getSquare(capturedPos);
+                if (capturedSquare != null && capturedSquare.getFigure() != null) {
+                    capturedSquare.setFigure(null);
+                }
+            }
+        }
+
         squareFrom.setFigure(null);
         squareTo.setFigure(figure);
+
+        if (figure.getType() == FigureType.PAWN && Math.abs(to.getRow() - from.getRow()) == 2) {
+            this.aislePos = new Position((from.getRow() + to.getRow()) / 2, from.getColumn());
+        } else {
+            this.aislePos = null;
+        }
 
         this.lastSide = lastSide == 0 ? 1 : 0;
         Logger.log("GameState", "move", "Был совершен ход из %s в %s".formatted(from, to));

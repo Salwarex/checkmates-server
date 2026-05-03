@@ -46,7 +46,7 @@ public class FenBuilder {
         }
         result.append(deskStr).append(" ");
         //
-        Logger.log("FenBuilder", "addStep",
+        Logger.log("FenBuilder", "addDesk",
                 "Добавлена.");
         //
     }
@@ -93,7 +93,9 @@ public class FenBuilder {
         Logger.log("FenBuilder", "addAisle",
                 "Добавляется...");
         //
-        if(aisle != null) result.append(Position.getNotationByPosition(aisle)).append(" ");
+        if(aisle != null) result.append(Position.getNotationByPosition(aisle));
+        else result.append("-");
+        result.append(" ");
         //
         Logger.log("FenBuilder", "addAisle",
                 "Добавлена.");
