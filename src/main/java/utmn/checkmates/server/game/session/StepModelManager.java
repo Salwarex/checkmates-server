@@ -1,7 +1,5 @@
 package utmn.checkmates.server.game.session;
 
-import utmn.checkmates.server.utility.logger.Logger;
-
 public class StepModelManager {
 
     public static boolean isAvailable(FigureType type, int color, Position from, Position to, GameState gameState){

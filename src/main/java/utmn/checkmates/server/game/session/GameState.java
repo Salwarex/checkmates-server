@@ -16,6 +16,7 @@ public class GameState {
     private int subStep;
     private int step;
     private Position aislePos;
+    private Desk.Square aisleOriginFigure; // клетка, которая будет очищена при взятии на проходе
 
     public GameState(){
         updateFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
@@ -148,8 +149,20 @@ public class GameState {
 
         if (figure.getType() == FigureType.PAWN && Math.abs(to.getRow() - from.getRow()) == 2) {
             this.aislePos = new Position((from.getRow() + to.getRow()) / 2, from.getColumn());
+            this.aisleOriginFigure = squareTo;
+
+            Logger.log("GameState", "move", "Установлена следующая позиция в качестве aislePos: %s"
+                    .formatted(aislePos.toString()));
         } else {
+            if(squareTo.getPos().equals(aislePos)){
+                aisleOriginFigure.setFigure(null);
+                Logger.log("GameState", "move", "ПРОВЕДЕНО ВЗЯТИЕ НА ПРОХОДЕ!");
+            }
+
             this.aislePos = null;
+            this.aisleOriginFigure = null;
+
+            Logger.log("GameState", "move", "aisle-позиция обнулена!");
         }
 
         this.lastSide = lastSide == 0 ? 1 : 0;
