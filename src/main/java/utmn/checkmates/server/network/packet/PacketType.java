@@ -4,6 +4,7 @@ import utmn.checkmates.server.Application;
 import utmn.checkmates.server.game.session.*;
 import utmn.checkmates.server.network.packet.input.*;
 import utmn.checkmates.server.network.packet.output.*;
+import utmn.checkmates.server.network.tcp.SessionConnection;
 import utmn.checkmates.server.network.tcp.SessionConnectionsManager;
 import utmn.checkmates.server.utility.logger.Logger;
 
@@ -121,21 +122,72 @@ public enum PacketType {
     S0101((byte) 0b0101,ResignPacket.class, packet -> {
         if(!(packet instanceof ResignPacket input))
             throw new HandlingException("Представленный пакет не соответствует необходимому типу!");
-        return unknownHandlerError(packet.getSocket());
+
+
+        List<Socket> response = List.of();
+        SessionConnectionsManager manager = Application.getServer().getConnectionsManager();
+        Session session = manager.getSessions().get(input.getSessionId());
+
+        Player player = session.getById(input.getClientId()).getPlayer();
+        int winnerColor = ~player.getColor() & 0b1;
+
+        session.end(new GameEnd(GameEndType.RESIGN, winnerColor));
+
+        return List.of();
     }),
     
     //предложение ничьей
     S0110((byte) 0b0110,DrawOfferPacket.class, packet -> {
         if(!(packet instanceof DrawOfferPacket input))
             throw new HandlingException("Представленный пакет не соответствует необходимому типу!");
-        return unknownHandlerError(packet.getSocket());
+        Socket socket = input.getSocket();
+        List<Socket> response = List.of(socket);
+        SessionConnectionsManager manager = Application.getServer().getConnectionsManager();
+        Session session = manager.getSessions().get(input.getSessionId());
+        Player player = session.getById(input.getClientId()).getPlayer();
+
+        if(session.getDrawProcess() != null)
+            return List.of(new ExceptionPacket(
+                    response,
+                    5,
+                    "В игре уже запущен процесс принятия ничьей!"
+            ));
+
+        SessionConnection connection = manager.getSessions().get(input.getSessionId()).getById(input.getClientId());
+        session.startDraw(connection);
+        return List.of();
     }),
     
     //ответ на предложение ничьей
     S0111((byte) 0b0111,DrawResponsePacket.class, packet -> {
         if(!(packet instanceof DrawResponsePacket input))
             throw new HandlingException("Представленный пакет не соответствует необходимому типу!");
-        return unknownHandlerError(packet.getSocket());
+        Socket socket = input.getSocket();
+        List<Socket> response = List.of(socket);
+        SessionConnectionsManager manager = Application.getServer().getConnectionsManager();
+        Session session = manager.getSessions().get(input.getSessionId());
+        SessionConnection connection = manager.getSessions().get(input.getSessionId()).getById(input.getClientId());
+
+        DrawProcess draw = session.getDrawProcess();
+        if(draw == null)
+            return List.of(new ExceptionPacket(
+                    response,
+                    5,
+                    "В игре уже не запущен процесс принятия ничьей!"
+            ));
+
+        try{
+            if(input.isAgree()) draw.agree(connection);
+            else draw.disagree(connection);
+        }catch (GameRuleException e){
+            return List.of(new ExceptionPacket(
+                    response,
+                    5,
+                    e.getMessage()
+            ));
+        }
+
+        return List.of();
     }),
     
     //"мягкое" отключение
@@ -149,6 +201,13 @@ public enum PacketType {
         SessionConnectionsManager scm = Application.getServer().getConnectionsManager();
         //SessionConnection connection = scm.getSessions().get(input.getSessionId()).getById(input.getClientId());
         scm.closeSessionConnection(socket);
+        Session session = scm.getSessions().get(input.getSessionId());
+        if(session != null){
+            Player player = session.getById(input.getClientId()).getPlayer();
+            int color = (~player.getColor()) & 0b1;
+            session.end(new GameEnd(GameEndType.DISCONNECTION, color));
+        }
+
         //todo: потом сделать так, чтобы был реконнект адекватный
 
         return List.of(new OpponentUpdatePacket(response, false, false));
@@ -163,7 +222,13 @@ public enum PacketType {
         List<Socket> response = List.of(socket);
 
         return List.of(new SessionListResponsePacket(response,
-                Application.getServer().getConnectionsManager().getSessions().values().stream().map(Session::getDto).toList())
+                Application.getServer().getConnectionsManager()
+                        .getSessions()
+                        .values()
+                        .stream()
+                        .map(Session::getDto)
+                        .toList()
+                )
         );
     }),
     

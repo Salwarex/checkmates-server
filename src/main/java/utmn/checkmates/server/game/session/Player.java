@@ -2,7 +2,7 @@ package utmn.checkmates.server.game.session;
 
 import utmn.checkmates.server.utility.logger.Logger;
 
-import java.util.UUID;
+import java.util.Objects;
 
 public class Player {
     private String playerName;
@@ -36,5 +36,18 @@ public class Player {
 
     public void setColor(int color) {
         this.color = color;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) return true;
+        if (object == null || getClass() != object.getClass()) return false;
+        Player player = (Player) object;
+        return color == player.color && Objects.equals(playerName, player.playerName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(playerName, color);
     }
 }

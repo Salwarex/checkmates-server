@@ -1,10 +1,7 @@
 package utmn.checkmates.server.game.session;
 
 import utmn.checkmates.server.Application;
-import utmn.checkmates.server.network.packet.output.ExceptionPacket;
-import utmn.checkmates.server.network.packet.output.GameStartPacket;
-import utmn.checkmates.server.network.packet.output.GameUpdatePacket;
-import utmn.checkmates.server.network.packet.output.OutputPacket;
+import utmn.checkmates.server.network.packet.output.*;
 import utmn.checkmates.server.network.tcp.SessionConnection;
 import utmn.checkmates.server.utility.FormatUtils;
 import utmn.checkmates.server.utility.Timer;
@@ -26,11 +23,13 @@ public class Session implements Closeable {
     private final ConcurrentMap<String, Integer> keysId = new ConcurrentHashMap<>();
     private int current = 0;
 
-    private final static int TIME_DELAY_GAME_START = 2;
+    private final static int TIME_DELAY_GAME_START = 10;
 
     private GameState gameState;
 
     private boolean started;
+
+    private DrawProcess drawProcess = null;
 
     public Session(int sessionId) {
         this.sessionId = sessionId;
@@ -123,6 +122,10 @@ public class Session implements Closeable {
         int id = keysId.get(key);
         keysId.remove(key);
         idKeys.remove(id);
+
+        try{
+            if(connections.isEmpty()) close();
+        }catch (IOException ignore){}
     }
 
     public void delayedStart(){
@@ -208,6 +211,29 @@ public class Session implements Closeable {
         return new SessionDto(sessionId, "Room #%d".formatted(sessionId), connections.size() < 2);
     }
 
+    public void end(GameEnd end){
+        if(end == null) throw new RuntimeException("Завершение игры не может быть null");
+        broadcast(new GameOverPacket(null, end.getType().getCode(), end.getWinnerIdx()),
+                null);
+        //
+        GameEndType type = end.getType();
+        Logger.log("Session", "end", "Отправлен сигнал завершения игры. Причина: %s (код: %d, победитель: %d)"
+                .formatted(type.getName(), type.getCode(), end.getWinnerIdx()));
+        //
+        Application.getPool().submit(new Timer(5, () -> {
+            try{
+                close();
+            } catch (Exception e) {
+                Logger.err("Возникла ошибка при завершении игры для сессии %d: %s"
+                        .formatted(sessionId, e.getMessage()));
+                broadcast(new GameStartPacket(List.of(), -1), null);
+                broadcast(new ExceptionPacket(List.of(), 5, "Возникла ошибка при завершении игры в сессии %d: %s"
+                                .formatted(sessionId, e.getMessage())),
+                        null);
+            }
+        }));
+    }
+
     @Override
     public void close() throws IOException {
         for(SessionConnection connection : connections.values()){
@@ -230,5 +256,14 @@ public class Session implements Closeable {
         int size = connections.size();
         if(size <= 1) return size;
         else return -1;
+    }
+
+    public DrawProcess getDrawProcess() {
+        return drawProcess;
+    }
+
+    public void startDraw(SessionConnection connection){
+        drawProcess = new DrawProcess(this, connection.getPlayer());
+        broadcast(new DrawDecisionPacket(null, 0), connection.getClientSocket().getInetAddress());
     }
 }
