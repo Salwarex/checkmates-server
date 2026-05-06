@@ -1,5 +1,8 @@
-package utmn.checkmates.server.game.session;
+package utmn.checkmates.server.game.process;
 
+import utmn.checkmates.server.game.exception.GameRuleException;
+import utmn.checkmates.server.game.session.Player;
+import utmn.checkmates.server.game.session.Session;
 import utmn.checkmates.server.network.packet.output.DrawDecisionPacket;
 import utmn.checkmates.server.network.tcp.SessionConnection;
 

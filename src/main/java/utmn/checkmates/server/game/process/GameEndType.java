@@ -1,4 +1,4 @@
-package utmn.checkmates.server.game.session;
+package utmn.checkmates.server.game.process;
 
 public enum GameEndType {
     MATE(0, "МАТ"),

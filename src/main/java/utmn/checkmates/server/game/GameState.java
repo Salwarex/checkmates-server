@@ -1,5 +1,14 @@
-package utmn.checkmates.server.game.session;
+package utmn.checkmates.server.game;
 
+import utmn.checkmates.server.game.desk.Desk;
+import utmn.checkmates.server.game.desk.Position;
+import utmn.checkmates.server.game.desk.StepModelManager;
+import utmn.checkmates.server.game.desk.figure.Figure;
+import utmn.checkmates.server.game.desk.figure.FigureType;
+import utmn.checkmates.server.game.desk.fen.FenBuilder;
+import utmn.checkmates.server.game.desk.fen.FenReader;
+import utmn.checkmates.server.game.exception.GameRuleException;
+import utmn.checkmates.server.game.exception.ServerSideException;
 import utmn.checkmates.server.network.tcp.SessionConnection;
 import utmn.checkmates.server.utility.logger.Logger;
 
@@ -147,6 +156,7 @@ public class GameState {
         squareFrom.setFigure(null);
         squareTo.setFigure(figure);
 
+        //взятие на проходе
         if (figure.getType() == FigureType.PAWN && Math.abs(to.getRow() - from.getRow()) == 2) {
             this.aislePos = new Position((from.getRow() + to.getRow()) / 2, from.getColumn());
             this.aisleOriginFigure = squareTo;
@@ -163,6 +173,15 @@ public class GameState {
             this.aisleOriginFigure = null;
 
             Logger.log("GameState", "move", "aisle-позиция обнулена!");
+        }
+
+        //пешки -> ферзи
+        if(figure.getType() == FigureType.PAWN && //фигура - пешка
+                ((figure.isWhite() && (squareTo.getPos().getRow() == 0)) //белая - на первой строке черных
+                                || (!figure.isWhite() && (squareTo.getPos().getRow() == 7))) //чёрная - на первой строке белых
+        ){
+            squareTo.setFigure(new Figure(FigureType.QUEEN, figure.isWhite()));
+            Logger.log("GameState", "move", "ПЕШКА повышена до ФЕРЗЯ!");
         }
 
         this.lastSide = lastSide == 0 ? 1 : 0;

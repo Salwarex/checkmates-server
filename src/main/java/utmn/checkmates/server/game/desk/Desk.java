@@ -1,5 +1,6 @@
-package utmn.checkmates.server.game.session;
+package utmn.checkmates.server.game.desk;
 
+import utmn.checkmates.server.game.desk.figure.Figure;
 import utmn.checkmates.server.utility.logger.Logger;
 
 import java.util.HashMap;
@@ -66,7 +67,7 @@ public class Desk {
         }
     }
 
-    class PositionMatcher{
+    public class PositionMatcher{
         private static Map<Position, Square> figureMap = new HashMap<>();
 
         public static boolean put(Position pos, Square figure){

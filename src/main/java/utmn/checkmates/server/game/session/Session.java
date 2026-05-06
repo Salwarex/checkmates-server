@@ -1,6 +1,11 @@
 package utmn.checkmates.server.game.session;
 
 import utmn.checkmates.server.Application;
+import utmn.checkmates.server.game.GameState;
+import utmn.checkmates.server.game.exception.GameRuleException;
+import utmn.checkmates.server.game.process.DrawProcess;
+import utmn.checkmates.server.game.process.GameEnd;
+import utmn.checkmates.server.game.process.GameEndType;
 import utmn.checkmates.server.network.packet.output.*;
 import utmn.checkmates.server.network.tcp.SessionConnection;
 import utmn.checkmates.server.utility.FormatUtils;
@@ -145,7 +150,7 @@ public class Session implements Closeable {
         }));
     }
 
-    public void start(boolean forced) throws GameRuleException{
+    public void start(boolean forced) throws GameRuleException {
         if(started)
             throw new GameRuleException("Игра уже запущена.");
         if(connections.size() < 2)

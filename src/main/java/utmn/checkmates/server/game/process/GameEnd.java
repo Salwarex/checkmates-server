@@ -1,4 +1,4 @@
-package utmn.checkmates.server.game.session;
+package utmn.checkmates.server.game.process;
 
 public class GameEnd {
     private final GameEndType type;

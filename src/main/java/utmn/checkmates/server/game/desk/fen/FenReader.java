@@ -1,4 +1,9 @@
-package utmn.checkmates.server.game.session;
+package utmn.checkmates.server.game.desk.fen;
+
+import utmn.checkmates.server.game.desk.Desk;
+import utmn.checkmates.server.game.desk.figure.Figure;
+import utmn.checkmates.server.game.desk.figure.FigureType;
+import utmn.checkmates.server.game.desk.Position;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +66,7 @@ public class FenReader {
         return fen;
     }
 
-    List<Desk.Column> getColumns(){
+    public List<Desk.Column> getColumns(){
         List<Desk.Column> columns = new ArrayList<>();
         for (int i = 0; i < 8; i++) {
             List<Desk.Square> squares = getSquares(i);

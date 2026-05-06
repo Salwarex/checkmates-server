@@ -1,4 +1,4 @@
-package utmn.checkmates.server.game.session;
+package utmn.checkmates.server.game.desk;
 
 import java.util.Objects;
 

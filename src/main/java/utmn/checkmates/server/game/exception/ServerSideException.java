@@ -1,4 +1,4 @@
-package utmn.checkmates.server.game.session;
+package utmn.checkmates.server.game.exception;
 
 public class ServerSideException extends Exception{
     public ServerSideException(String message) {

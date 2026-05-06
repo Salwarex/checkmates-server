@@ -1,5 +1,9 @@
-package utmn.checkmates.server.game.session;
+package utmn.checkmates.server.game.desk.fen;
 
+import utmn.checkmates.server.game.desk.Desk;
+import utmn.checkmates.server.game.desk.figure.Figure;
+import utmn.checkmates.server.game.GameState;
+import utmn.checkmates.server.game.desk.Position;
 import utmn.checkmates.server.utility.logger.Logger;
 
 public class FenBuilder {

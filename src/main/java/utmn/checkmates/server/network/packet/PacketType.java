@@ -1,6 +1,13 @@
 package utmn.checkmates.server.network.packet;
 
 import utmn.checkmates.server.Application;
+import utmn.checkmates.server.game.GameState;
+import utmn.checkmates.server.game.desk.Position;
+import utmn.checkmates.server.game.exception.GameRuleException;
+import utmn.checkmates.server.game.exception.ServerSideException;
+import utmn.checkmates.server.game.process.DrawProcess;
+import utmn.checkmates.server.game.process.GameEnd;
+import utmn.checkmates.server.game.process.GameEndType;
 import utmn.checkmates.server.game.session.*;
 import utmn.checkmates.server.network.packet.input.*;
 import utmn.checkmates.server.network.packet.output.*;

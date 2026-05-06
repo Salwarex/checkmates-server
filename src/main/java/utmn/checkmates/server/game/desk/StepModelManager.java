@@ -1,4 +1,8 @@
-package utmn.checkmates.server.game.session;
+package utmn.checkmates.server.game.desk;
+
+import utmn.checkmates.server.game.desk.figure.Figure;
+import utmn.checkmates.server.game.desk.figure.FigureType;
+import utmn.checkmates.server.game.GameState;
 
 public class StepModelManager {
 
