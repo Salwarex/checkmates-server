@@ -1,6 +1,7 @@
 package utmn.checkmates.server.game.desk;
 
 import utmn.checkmates.server.game.desk.figure.Figure;
+import utmn.checkmates.server.game.desk.figure.FigureType;
 import utmn.checkmates.server.utility.logger.Logger;
 
 import java.util.HashMap;
@@ -68,11 +69,18 @@ public class Desk {
     }
 
     public class PositionMatcher{
+        private static Position whiteKingPos;
+        private static Position blackKingPos;
         private static Map<Position, Square> figureMap = new HashMap<>();
 
-        public static boolean put(Position pos, Square figure){
+        public static boolean put(Position pos, Square square){
             if(figureMap.containsKey(pos)) return false;
-            figureMap.put(pos, figure);
+            figureMap.put(pos, square);
+            Figure figure = square.figure;
+            if(figure.getType() == FigureType.KING){
+                if(figure.isWhite()) whiteKingPos = pos;
+                else blackKingPos = pos;
+            }
             return true;
         }
 
@@ -84,6 +92,16 @@ public class Desk {
         public static void clear(){
             Logger.log("Desk.PositionMatcher", "clear", "Кэш совмещения PositionMatcher очищается!");
             figureMap.clear();
+            whiteKingPos = null;
+            blackKingPos = null;
+        }
+
+        public static Position getWhiteKingPos() {
+            return whiteKingPos;
+        }
+
+        public static Position getBlackKingPos() {
+            return blackKingPos;
         }
     }
 }

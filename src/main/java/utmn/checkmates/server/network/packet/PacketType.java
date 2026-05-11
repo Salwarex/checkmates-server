@@ -122,7 +122,7 @@ public enum PacketType {
             ));
         }
 
-        return List.of(new GameUpdatePacket(response, gameState.getFen(), false, 0L, 0L));
+        return List.of(new GameUpdatePacket(response, gameState.getFen(), gameState.isCheck(), 0L, 0L));
     }),
     
     //сдача игрока

@@ -158,7 +158,7 @@ public class Session implements Closeable {
         if(!allReady() && !forced)
             throw new GameRuleException("Для начала игры требуется, чтобы оба игрока были готовы!");
 
-        gameState = new GameState();
+        gameState = new GameState(this);
         this.started = true;
         Logger.out("Игра для сессии #%d успешно запущена!".formatted(sessionId));
         String fen = gameState.getFen();
@@ -166,11 +166,6 @@ public class Session implements Closeable {
         Logger.out("Игра для сессии #%d успешно запущена!".formatted(sessionId));
         broadcast(new GameStartPacket(List.of(), 0), null);
         broadcast(new GameUpdatePacket(List.of(), fen, false, 1, 1), null);
-    }
-
-    public static void main(String[] args) throws GameRuleException{
-        GameState gameState = new GameState();
-        String fen = gameState.getFen();
     }
 
     public boolean allReady(){

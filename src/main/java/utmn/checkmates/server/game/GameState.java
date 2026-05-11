@@ -9,29 +9,37 @@ import utmn.checkmates.server.game.desk.fen.FenBuilder;
 import utmn.checkmates.server.game.desk.fen.FenReader;
 import utmn.checkmates.server.game.exception.GameRuleException;
 import utmn.checkmates.server.game.exception.ServerSideException;
+import utmn.checkmates.server.game.process.GameEnd;
+import utmn.checkmates.server.game.process.GameEndType;
+import utmn.checkmates.server.game.session.Session;
 import utmn.checkmates.server.network.tcp.SessionConnection;
 import utmn.checkmates.server.utility.logger.Logger;
 
 public class GameState {
-    private FenReader reader;
-    private Desk desk;
+    private Session session;
+    private FenReader reader; //обработчик Fen-записи
+    private Desk desk; //доска
 
-    private boolean whiteLongCastling;
-    private boolean whiteShortCastling;
-    private boolean blackLongCastling;
-    private boolean blackShortCastling;
+    private boolean whiteLongCastling; //количество длинных белых рокировок
+    private boolean whiteShortCastling; //количество коротких белых рокировок
+    private boolean blackLongCastling; //количество длинных чёрных рокировок
+    private boolean blackShortCastling; //количество коротких чёрных рокировок
 
-    private int lastSide;
-    private int subStep;
-    private int step;
-    private Position aislePos;
+    private int lastSide; //крайняя ходившая сторона
+    private int subStep; //номер полухода
+    private int step; //номер хода
+    private Position aislePos; //пропущенная клетка при взятии на проходе
     private Desk.Square aisleOriginFigure; // клетка, которая будет очищена при взятии на проходе
 
-    public GameState(){
+    private boolean check = false; //шах
+
+    public GameState(Session session){
+        this.session = session;
         updateFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     }
 
-    public GameState(String fen){
+    public GameState(Session session, String fen){
+        this.session = session;
         updateFen(fen);
     }
 
@@ -142,15 +150,22 @@ public class GameState {
             throw new GameRuleException("Ход в данную клетку невозможен! Данная фигура имеет другую модель хождения.");
         }
 
-        if (figure.getType() == FigureType.PAWN && squareTo.getFigure() == null) {
-            Position ep = this.aislePos;
-            if (ep != null && ep.equals(to)) {
-                Position capturedPos = new Position(from.getRow(), to.getColumn());
-                Desk.Square capturedSquare = desk.getSquare(capturedPos);
-                if (capturedSquare != null && capturedSquare.getFigure() != null) {
-                    capturedSquare.setFigure(null);
-                }
-            }
+        //не помню че это такое, мб удалить можно
+//        if (figure.getType() == FigureType.PAWN && squareTo.getFigure() == null) {
+//            Position ep = this.aislePos;
+//            if (ep != null && ep.equals(to)) {
+//                Position capturedPos = new Position(from.getRow(), to.getColumn());
+//                Desk.Square capturedSquare = desk.getSquare(capturedPos);
+//                if (capturedSquare != null && capturedSquare.getFigure() != null) {
+//                    capturedSquare.setFigure(null);
+//                }
+//            }
+//        }
+
+        //проверка на мат
+        if(squareTo.getFigure() != null && squareTo.getFigure().getType() == FigureType.KING){
+            Logger.log("GameState", "move", "ПРОИЗВЕДЕН МАТ");
+            session.end(new GameEnd(GameEndType.MATE, figure.isWhite() ? 0 : 1));
         }
 
         squareFrom.setFigure(null);
@@ -184,11 +199,60 @@ public class GameState {
             Logger.log("GameState", "move", "ПЕШКА повышена до ФЕРЗЯ!");
         }
 
+        //проверка шаха
+        check = StepModelManager.isAvailable(figure.getType(), figure.isWhite() ? 0 : 1, to,
+                figure.isWhite() ? Desk.PositionMatcher.getBlackKingPos() : Desk.PositionMatcher.getWhiteKingPos(), this);
+        Logger.log("GameState", "move", "Шах: %b".formatted(check));
+
         this.lastSide = lastSide == 0 ? 1 : 0;
+
+        updateCastlingRights(from, to, figure);
+
         Logger.log("GameState", "move", "Был совершен ход из %s в %s".formatted(from, to));
+    }
+
+    public boolean isCheck() {
+        return check;
     }
 
     public String getFen(){
         return new FenBuilder(this).toFen();
+    }
+
+
+    // Обновление прав на рокировку после хода
+    private void updateCastlingRights(Position from, Position to, Figure figure) {
+        // Если походил король
+        if (figure.getType() == FigureType.KING) {
+            if (figure.isWhite()) {
+                whiteLongCastling = false;
+                whiteShortCastling = false;
+            } else {
+                blackLongCastling = false;
+                blackShortCastling = false;
+            }
+        }
+        // Если походила ладья с угловой позиции
+        else if (figure.getType() == FigureType.ROOK) {
+            if (figure.isWhite() && from.getRow() == 0) {
+                if (from.getColumn() == 0) whiteLongCastling = false;
+                if (from.getColumn() == 7) whiteShortCastling = false;
+            } else if (!figure.isWhite() && from.getRow() == 7) {
+                if (from.getColumn() == 0) blackLongCastling = false;
+                if (from.getColumn() == 7) blackShortCastling = false;
+            }
+        }
+        // Если съели ладью на угловой позиции
+        Desk.Square toSquare = desk.getSquare(to);
+        if (toSquare.getFigure() != null && toSquare.getFigure().getType() == FigureType.ROOK) {
+            Figure captured = toSquare.getFigure();
+            if (captured.isWhite() && to.getRow() == 0) {
+                if (to.getColumn() == 0) whiteLongCastling = false;
+                if (to.getColumn() == 7) whiteShortCastling = false;
+            } else if (!captured.isWhite() && to.getRow() == 7) {
+                if (to.getColumn() == 0) blackLongCastling = false;
+                if (to.getColumn() == 7) blackShortCastling = false;
+            }
+        }
     }
 }
