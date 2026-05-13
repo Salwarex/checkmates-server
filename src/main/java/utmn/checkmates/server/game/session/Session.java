@@ -29,6 +29,8 @@ public class Session implements Closeable {
 
     private final ConcurrentMap<Integer, String> idKeys = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, Integer> keysId = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Player> rememberedPlayers = new ConcurrentHashMap<>();
+
     private int current = 0;
 
     private final static int TIME_DELAY_GAME_START = 10;
@@ -71,6 +73,8 @@ public class Session implements Closeable {
         current++;
         idKeys.put(id, connection.key());
         keysId.put(connection.key(), id);
+        Player player = connection.getPlayer();
+        if(player != null) rememberedPlayers.put(player.getPlayerName(), player);
 
         //
         Logger.log("Session", "add",
@@ -244,6 +248,7 @@ public class Session implements Closeable {
             } catch (Exception e) {
                 Logger.err("Возникла ошибка при завершении игры для сессии %d: %s"
                         .formatted(sessionId, e.getMessage()));
+                e.printStackTrace();
                 broadcast(new GameStartPacket(List.of(), -1), null, 0);
                 broadcast(new ExceptionPacket(List.of(), 5, "Возникла ошибка при завершении игры в сессии %d: %s"
                                 .formatted(sessionId, e.getMessage())),
@@ -256,10 +261,10 @@ public class Session implements Closeable {
     public void close() throws IOException {
         for(SessionConnection connection : connections.values()){
             Application.getServer().getConnectionsManager().closeSessionConnection(connection.getClientSocket());
-            connections.clear();
-            idKeys.clear();
-            keysId.clear();
         }
+        connections.clear();
+        idKeys.clear();
+        keysId.clear();
     }
 
     public GameState getGameState() {
@@ -284,6 +289,10 @@ public class Session implements Closeable {
         drawProcess = new DrawProcess(this, connection.getPlayer());
         broadcast(new DrawDecisionPacket(null, 0), connection.getClientSocket().getInetAddress(),
                 connection.getClientSocket().getPort());
+    }
+
+    public Player getPlayer(String name){
+        return rememberedPlayers.get(name);
     }
 
     @Override

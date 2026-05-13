@@ -1,6 +1,7 @@
 package utmn.checkmates.server.network.tcp;
 
 import utmn.checkmates.server.Application;
+import utmn.checkmates.server.game.session.Player;
 import utmn.checkmates.server.game.session.Session;
 import utmn.checkmates.server.network.packet.PacketHandler;
 import utmn.checkmates.server.network.packet.input.InputPacket;
@@ -99,6 +100,15 @@ public class SessionConnectionsManager {
                 "Открытие сессии %s:%d: Присвоено поле Player.Color".formatted(clientSocket.getInetAddress(), clientSocket.getPort()));
         //
 
+        Player rememberedPlayer = session.getPlayer(connection.getPlayerName());
+        if(rememberedPlayer != null){
+            connection.setPlayer(rememberedPlayer);
+            //
+            Logger.log("SessionConnectionManager", "openSessionConnection",
+                    "Открытие сессии %s:%d: Восстановлена утраченная ранее сессия игрока %s".formatted(clientSocket.getInetAddress(), clientSocket.getPort(), rememberedPlayer.getPlayerName()));
+            //
+        }
+
         //
         Logger.log("SessionConnectionManager", "openSessionConnection",
                 "Открытие сессии: Сессии %s:%d присвоены данные. Добавляется в сессионный пул".formatted(clientSocket.getInetAddress(), clientSocket.getPort()));
@@ -141,7 +151,12 @@ public class SessionConnectionsManager {
     public void closeSession(int sessionId) throws IOException {
         Session session = sessions.get(sessionId);
 
+        if(session == null) throw new IOException("Сессия не найдена!");
+        else{
+            Logger.log("SessionConnectionsManager", "closeConnection", "Закрываемая сессия найдена!");
+        }
         session.close();
+        sessions.remove(sessionId);
 
         ConcurrentMap<Socket, SessionConnection> connectionUpdated = new ConcurrentHashMap<>();
         for(Socket socket : connections.keySet()){
@@ -162,6 +177,22 @@ public class SessionConnectionsManager {
         session.remove(connection);
         connections.remove(socket, connection);
         connection.close();
+
+        boolean findedAny = false;
+        for(Socket s : connections.keySet()){
+            SessionConnection c = connections.get(s);
+            if(c.getSession().equals(session)){
+                findedAny = true;
+                break;
+            }
+        }
+        if(!findedAny){
+            try{
+                closeSession(session.getSessionId());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     public Session createSession(){

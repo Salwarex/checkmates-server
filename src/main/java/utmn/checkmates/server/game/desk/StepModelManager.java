@@ -3,6 +3,7 @@ package utmn.checkmates.server.game.desk;
 import utmn.checkmates.server.game.desk.figure.Figure;
 import utmn.checkmates.server.game.desk.figure.FigureType;
 import utmn.checkmates.server.game.GameState;
+import utmn.checkmates.server.utility.logger.Logger;
 
 public class StepModelManager {
 
@@ -103,64 +104,7 @@ public class StepModelManager {
             return true;
         }
 
-        return isCastlingValid(color, fromFile, fromRank, toFile, toRank, gameState);
-    }
-
-    private static boolean isCastlingValid(int color, int fromFile, int fromRank, int toFile, int toRank, GameState gameState) {
-        Desk desk = gameState.getDesk();
-
-        if (fromFile != 4) {
-            return false;
-        }
-
-        boolean isShort = (toFile == 6);
-        boolean isLong = (toFile == 2);
-
-        if (!isShort && !isLong) {
-            return false;
-        }
-
-        boolean castlingAllowed;
-        if (color == 0) {
-            castlingAllowed = isShort ? gameState.isWhiteShortCastling() : gameState.isWhiteLongCastling();
-        } else {
-            castlingAllowed = isShort ? gameState.isBlackShortCastling() : gameState.isBlackLongCastling();
-        }
-
-        if (!castlingAllowed) {
-            return false;
-        }
-
-        int kingRank = (color == 0) ? 0 : 7;
-        if (fromRank != kingRank || toRank != kingRank) {
-            return false;
-        }
-
-        if (isShort) {
-            for (int f = 5; f <= 6; f++) {
-                Desk.Square sq = desk.getSquare(new Position(f, kingRank));
-                if (sq == null || sq.getFigure() != null) {
-                    return false;
-                }
-            }
-            Desk.Square rookSq = desk.getSquare(new Position(7, kingRank));
-            if (rookSq == null || rookSq.getFigure() == null || rookSq.getFigure().getType() != FigureType.ROOK) {
-                return false;
-            }
-        } else {
-            for (int f = 1; f <= 3; f++) {
-                Desk.Square sq = desk.getSquare(new Position(f, kingRank));
-                if (sq == null || sq.getFigure() != null) {
-                    return false;
-                }
-            }
-            Desk.Square rookSq = desk.getSquare(new Position(0, kingRank));
-            if (rookSq == null || rookSq.getFigure() == null || rookSq.getFigure().getType() != FigureType.ROOK) {
-                return false;
-            }
-        }
-
-        return true;
+        return false;
     }
 
     private static boolean isPawnMoveValid(int color, int fromRow, int fromCol, int toRow, int toCol, GameState gameState) {
@@ -205,4 +149,89 @@ public class StepModelManager {
         }
         return false;
     }
+
+    public static CastlingResult isCastlingValid(int color,
+                                           int kingRow,
+                                           int kingCol,
+                                           int bishopRow,
+                                           int bishopCol,
+                                           boolean bl,
+                                           boolean bs,
+                                           boolean wl,
+                                           boolean ws){
+        int difference = Math.abs(bishopCol - kingCol);
+        int bias = bishopRow - kingRow;
+
+        Logger.log("GameState", "move", "Проверка на валидность рокировки!");
+
+        if(bias != 0 || (difference < 3 || difference > 4)) {
+            //
+            Logger.log("GameState", "move", "Рокировка неудачна: Разница или отклонение больше допустимых: difference : %d, bias: %d".formatted(difference, bias));
+            //
+            return CastlingResult.UNAVAILABLE;
+        }
+
+        boolean isLong = difference == 4;
+
+        if(color == 0){ //белые
+            if(bishopRow != 7 || kingRow != 7) {
+                //
+                Logger.log("GameState", "move", "Рокировка неудачна: Белая рокировка происходит в 7 строке (текущая: %d)".formatted(bishopRow));
+                //
+                return CastlingResult.UNAVAILABLE;
+            }
+
+            if(isLong && wl) return isCastlingValidLong(7, kingCol, bishopCol);
+            else if(!isLong && ws) return isCastlingValidShort(7, kingCol, bishopCol);
+        }else{ //черные
+            if(bishopRow != 0 || kingRow != 0) {
+                //
+                Logger.log("GameState", "move", "Рокировка неудачна: Белая рокировка происходит в 0 строке (текущая: %d)".formatted(bishopRow));
+                //
+                return CastlingResult.UNAVAILABLE;
+            }
+
+            if(isLong && bl) return isCastlingValidLong(0, kingCol, bishopCol);
+            else if(!isLong && bs) return isCastlingValidShort(0, kingCol, bishopCol);
+        }
+        return CastlingResult.UNAVAILABLE;
+    }
+
+    private static boolean emptyLine(int row, int start, int end){
+        for(int i = start + 1; i < end; i++){
+            Desk.Square square = Desk.PositionMatcher.get(new Position(row, i));
+            if(square != null && square.getFigure() != null) {
+                //
+                Logger.log("GameState", "move", "Рокировка неудачна: Найдена промежуточная фигура в позиции (%d, %d)".formatted(row, i));
+                //
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static CastlingResult isCastlingValidLong(int row, int kingCol, int rookCol){
+        if(emptyLine(row, kingCol, rookCol)){
+            Position kingPos = new Position(row, 2);
+            Position rookPos = new Position(row, 3);
+            //
+            Logger.log("GameState", "move", "Рокировка удачна: Длинная, kingPos: %s; rookPos: %s".formatted(kingPos.toString(), rookPos.toString()));
+            //
+            return new CastlingResult(kingPos, rookPos, true);
+        }
+        return CastlingResult.UNAVAILABLE;
+    }
+
+    private static CastlingResult isCastlingValidShort(int row, int kingCol, int rookCol){
+        if(emptyLine(row, kingCol, rookCol)){
+            Position kingPos = new Position(row, 6);
+            Position rookPos = new Position(row, 5);
+            //
+            Logger.log("GameState", "move", "Рокировка удачна: Короткая, kingPos: %s; rookPos: %s".formatted(kingPos.toString(), rookPos.toString()));
+            //
+            return new CastlingResult(kingPos, rookPos, false);
+        }
+        return CastlingResult.UNAVAILABLE;
+    }
+
 }

@@ -1,9 +1,6 @@
 package utmn.checkmates.server.game;
 
-import utmn.checkmates.server.game.desk.Desk;
-import utmn.checkmates.server.game.desk.Position;
-import utmn.checkmates.server.game.desk.SquareSnapshot;
-import utmn.checkmates.server.game.desk.StepModelManager;
+import utmn.checkmates.server.game.desk.*;
 import utmn.checkmates.server.game.desk.figure.Figure;
 import utmn.checkmates.server.game.desk.figure.FigureType;
 import utmn.checkmates.server.game.desk.fen.FenBuilder;
@@ -24,10 +21,10 @@ public class GameState {
     private FenReader reader; //обработчик Fen-записи
     private Desk desk; //доска
 
-    private boolean whiteLongCastling; //количество длинных белых рокировок
-    private boolean whiteShortCastling; //количество коротких белых рокировок
-    private boolean blackLongCastling; //количество длинных чёрных рокировок
-    private boolean blackShortCastling; //количество коротких чёрных рокировок
+    private boolean whiteLongCastling; //возможность длинных белых рокировок
+    private boolean whiteShortCastling; //возможность коротких белых рокировок
+    private boolean blackLongCastling; //возможность длинных чёрных рокировок
+    private boolean blackShortCastling; //возможность коротких чёрных рокировок
 
     private int lastSide; //крайняя ходившая сторона
     private int subStep; //номер полухода
@@ -149,8 +146,51 @@ public class GameState {
         }
 
         Desk.Square squareTo = desk.getSquare(to);
+        boolean notDefaultMove = false;
 
-        if(!StepModelManager.isAvailable(figure.getType(), figure.isWhite() ? 0 : 1, from, to, this)){
+        //рокировка
+        Figure figureFrom = squareFrom.getFigure();
+        Figure figureTo = squareTo.getFigure();
+        Position posFrom = squareFrom.getPos();
+        Position posTo = squareTo.getPos();
+
+        if(figureFrom != null && figureTo != null && figureFrom.isWhite() == figureTo.isWhite()
+                && figureFrom.getType() == FigureType.KING && figureTo.getType() == FigureType.ROOK
+        ){
+            CastlingResult check = StepModelManager.isCastlingValid(figure.isWhite() ? 0 : 1,
+                    posFrom.getRow(),
+                    posFrom.getColumn(),
+                    posTo.getRow(),
+                    posTo.getColumn(),
+                    blackLongCastling,
+                    blackShortCastling,
+                    whiteLongCastling,
+                    whiteShortCastling
+            );
+            if(check.isAvailable()){
+                notDefaultMove = true;
+
+                //перемещаем ладью
+                desk.getSquare(check.getNewRookPos()).setFigure(squareTo.getFigure());
+                squareTo.setFigure(null);
+
+                //устанавливаем новую позицию для ходившего короля - дальше она применится
+                squareTo = desk.getSquare(check.getNewKingPos());
+
+                Logger.log("GameState", "move", "Произведена рокировка!");
+
+                boolean white = figure.isWhite();
+                boolean _long = check.isLong();
+
+                //убираем флаги доступности рокировок
+                if(white && _long) whiteLongCastling = false;
+                else if(!white && _long) blackLongCastling = false;
+                else if(white) whiteShortCastling = false;
+                else blackShortCastling = false;
+            }
+        }
+
+        if(!notDefaultMove && !StepModelManager.isAvailable(figure.getType(), figure.isWhite() ? 0 : 1, from, to, this)){
             Logger.log("GameState", "move", "Движение прервано: Был произведен ход в клетку, которая не соответствует модели хождения данного типа фигуры");
             throw new GameRuleException("Ход в данную клетку невозможен! Данная фигура имеет другую модель хождения.");
         }
@@ -232,8 +272,6 @@ public class GameState {
 
         this.lastSide = lastSide == 0 ? 1 : 0;
 
-        updateCastlingRights(from, to, figure);
-
         Logger.log("GameState", "move", "Был совершен ход из %s в %s".formatted(from, to));
     }
 
@@ -245,40 +283,4 @@ public class GameState {
         return new FenBuilder(this).toFen();
     }
 
-
-    // Обновление прав на рокировку после хода
-    private void updateCastlingRights(Position from, Position to, Figure figure) {
-        // Если походил король
-        if (figure.getType() == FigureType.KING) {
-            if (figure.isWhite()) {
-                whiteLongCastling = false;
-                whiteShortCastling = false;
-            } else {
-                blackLongCastling = false;
-                blackShortCastling = false;
-            }
-        }
-        // Если походила ладья с угловой позиции
-        else if (figure.getType() == FigureType.ROOK) {
-            if (figure.isWhite() && from.getRow() == 0) {
-                if (from.getColumn() == 0) whiteLongCastling = false;
-                if (from.getColumn() == 7) whiteShortCastling = false;
-            } else if (!figure.isWhite() && from.getRow() == 7) {
-                if (from.getColumn() == 0) blackLongCastling = false;
-                if (from.getColumn() == 7) blackShortCastling = false;
-            }
-        }
-        // Если съели ладью на угловой позиции
-        Desk.Square toSquare = desk.getSquare(to);
-        if (toSquare.getFigure() != null && toSquare.getFigure().getType() == FigureType.ROOK) {
-            Figure captured = toSquare.getFigure();
-            if (captured.isWhite() && to.getRow() == 0) {
-                if (to.getColumn() == 0) whiteLongCastling = false;
-                if (to.getColumn() == 7) whiteShortCastling = false;
-            } else if (!captured.isWhite() && to.getRow() == 7) {
-                if (to.getColumn() == 0) blackLongCastling = false;
-                if (to.getColumn() == 7) blackShortCastling = false;
-            }
-        }
-    }
 }
