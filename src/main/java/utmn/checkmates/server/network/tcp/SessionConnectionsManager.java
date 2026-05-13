@@ -15,7 +15,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 
 public class SessionConnectionsManager {
@@ -23,7 +25,7 @@ public class SessionConnectionsManager {
 
     private int current = 0;
     private final ConcurrentMap<Integer, Session> sessions = new ConcurrentHashMap<>();
-    private final ConcurrentMap<Socket, SessionConnection> connections = new ConcurrentHashMap<>();
+    private ConcurrentMap<Socket, SessionConnection> connections = new ConcurrentHashMap<>();
 
     private final ExecutorService clientPool;
 
@@ -136,6 +138,21 @@ public class SessionConnectionsManager {
         return connection;
     }
 
+    public void closeSession(int sessionId) throws IOException {
+        Session session = sessions.get(sessionId);
+
+        session.close();
+
+        ConcurrentMap<Socket, SessionConnection> connectionUpdated = new ConcurrentHashMap<>();
+        for(Socket socket : connections.keySet()){
+            SessionConnection connection = connections.get(socket);
+            if(!connection.getSession().equals(session))
+                connectionUpdated.put(socket, connection);
+        }
+
+        connections = connectionUpdated;
+    }
+
     public void closeSessionConnection(Socket socket){
         SessionConnection connection = connections.get(socket);
         Logger.out("Игрок %s (%s:%d) отключается..."
@@ -179,8 +196,8 @@ public class SessionConnectionsManager {
         }
     }
 
-    private void broadcast(Session session, OutputPacket packet, InetAddress exclude){
-        session.broadcast(packet, exclude);
+    private void broadcast(Session session, OutputPacket packet, InetAddress exclude, int excludePort){
+        session.broadcast(packet, exclude, excludePort);
     }
 
     private void broadcast(OutputPacket packet){
@@ -189,6 +206,7 @@ public class SessionConnectionsManager {
                 NetworkTcp.sendPacket(connection, packet);
             }
         } catch (IOException e) {
+            Logger.err("Возникла ошибка при отправке пакета: %s".formatted(e.getMessage()));
             throw new RuntimeException(e);
         }
     }
@@ -230,7 +248,7 @@ public class SessionConnectionsManager {
 
                     if (destAddresses == null || destAddresses.isEmpty()) {
                         if (outputPacket instanceof SessionPacket sessionPacket) {
-                            broadcast(sessions.get(sessionPacket.getSessionId()), outputPacket, null); // в рамках сессии
+                            broadcast(sessions.get(sessionPacket.getSessionId()), outputPacket, null, 0); // в рамках сессии
                         } else {
                             broadcast(outputPacket); // всем
                         }

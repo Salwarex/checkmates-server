@@ -2,6 +2,7 @@ package utmn.checkmates.server.game;
 
 import utmn.checkmates.server.game.desk.Desk;
 import utmn.checkmates.server.game.desk.Position;
+import utmn.checkmates.server.game.desk.SquareSnapshot;
 import utmn.checkmates.server.game.desk.StepModelManager;
 import utmn.checkmates.server.game.desk.figure.Figure;
 import utmn.checkmates.server.game.desk.figure.FigureType;
@@ -14,6 +15,9 @@ import utmn.checkmates.server.game.process.GameEndType;
 import utmn.checkmates.server.game.session.Session;
 import utmn.checkmates.server.network.tcp.SessionConnection;
 import utmn.checkmates.server.utility.logger.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GameState {
     private Session session;
@@ -32,6 +36,7 @@ public class GameState {
     private Desk.Square aisleOriginFigure; // клетка, которая будет очищена при взятии на проходе
 
     private boolean check = false; //шах
+    private List<SquareSnapshot> checkSquaresSnaps = new ArrayList<>();
 
     public GameState(Session session){
         this.session = session;
@@ -202,6 +207,27 @@ public class GameState {
         //проверка шаха
         check = StepModelManager.isAvailable(figure.getType(), figure.isWhite() ? 0 : 1, to,
                 figure.isWhite() ? Desk.PositionMatcher.getBlackKingPos() : Desk.PositionMatcher.getWhiteKingPos(), this);
+        checkSquaresSnaps.add(squareTo.snapshot());
+        if(!check){ //сохранение шаха при следующих ходах
+            List<SquareSnapshot> updatedList = new ArrayList<>();
+            for(SquareSnapshot squareSnapshot : checkSquaresSnaps){
+                Desk.Square square = Desk.PositionMatcher.get(squareSnapshot.getPosition());
+                boolean hasCheck = false;
+
+                //шаховая клетка не изменилась - проверяем, существует ли шах
+                if(square != null && square.snapshot().equals(squareSnapshot)){
+                    Figure snapFigure = squareSnapshot.getFigure();
+                    hasCheck = StepModelManager.isAvailable(snapFigure.getType(), snapFigure.isWhite() ? 0 : 1, squareSnapshot.getPosition(),
+                            snapFigure.isWhite() ? Desk.PositionMatcher.getBlackKingPos() : Desk.PositionMatcher.getWhiteKingPos(), this);
+                }
+
+                if(hasCheck) updatedList.add(square.snapshot());
+
+                check = check || hasCheck;
+            }
+            checkSquaresSnaps = updatedList;
+        }
+
         Logger.log("GameState", "move", "Шах: %b".formatted(check));
 
         this.lastSide = lastSide == 0 ? 1 : 0;

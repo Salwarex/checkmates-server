@@ -63,7 +63,7 @@ public class NetworkTcp {
     static void sendPacket(BufferedOutputStream out, OutputPacket packet) throws IOException {
         //
         Logger.log("NetworkTcp", "sendPacket",
-                "Ожидается отправка пакета...");
+                "Ожидается отправка пакета (%s)...".formatted(packet != null ? packet.getClass().getSimpleName() : "null"));
         //
 
         if(out == null) return;

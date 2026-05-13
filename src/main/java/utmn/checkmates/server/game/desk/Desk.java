@@ -66,6 +66,10 @@ public class Desk {
                     .formatted(pos, figure == null ? "null" : figure.getType()));
             this.figure = figure;
         }
+
+        public SquareSnapshot snapshot(){
+            return new SquareSnapshot(this);
+        }
     }
 
     public class PositionMatcher{
@@ -77,7 +81,7 @@ public class Desk {
             if(figureMap.containsKey(pos)) return false;
             figureMap.put(pos, square);
             Figure figure = square.figure;
-            if(figure.getType() == FigureType.KING){
+            if(figure != null && figure.getType() == FigureType.KING){
                 if(figure.isWhite()) whiteKingPos = pos;
                 else blackKingPos = pos;
             }

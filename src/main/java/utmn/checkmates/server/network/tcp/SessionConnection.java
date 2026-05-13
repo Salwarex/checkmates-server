@@ -89,7 +89,12 @@ public class SessionConnection implements AutoCloseable{
     }
 
     public void sendPacket(OutputPacket packet) throws IOException {
-        if (!active) throw new IOException("Сессия неактивна");
+        if (!active) {
+            //
+            Logger.log("SessionConnection", "sendPacket", "(Отправка пакета) Пакет не отправлен: Сессия неактивна.");
+            //
+            throw new IOException("Сессия неактивна");
+        }
         NetworkTcp.sendPacket(out, packet);
     }
 

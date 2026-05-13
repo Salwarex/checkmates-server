@@ -43,6 +43,6 @@ public class DrawProcess {
         if(connection.getPlayer().equals(initiator))
             throw new GameRuleException("Вы не можете ответить на запрос сдачи! Он был отправлен вами");
         agree = false; finished = true;
-        session.broadcast(new DrawDecisionPacket(null, 1), connection.getAddress());
+        session.broadcast(new DrawDecisionPacket(null, 1), connection.getAddress(), connection.getClientSocket().getPort());
     }
 }
