@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GameState {
-    private Session session;
+    private Session session; //к какой партии относится
     private FenReader reader; //обработчик Fen-записи
     private Desk desk; //доска
 
@@ -32,9 +32,10 @@ public class GameState {
     private Position aislePos; //пропущенная клетка при взятии на проходе
     private Desk.Square aisleOriginFigure; // клетка, которая будет очищена при взятии на проходе
 
-    private boolean check = false; //шах
-    private List<SquareSnapshot> checkSquaresSnaps = new ArrayList<>();
+    private boolean check = false; //поставлен ли шах
+    private List<SquareSnapshot> checkSquaresSnaps = new ArrayList<>(); //список клеток, в которых был поставлен шах
 
+    //конструкторы
     public GameState(Session session){
         this.session = session;
         updateFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
@@ -45,6 +46,7 @@ public class GameState {
         updateFen(fen);
     }
 
+    //для обновления состояния (переменных) на основе Fen-строки (формата "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
     public void updateFen(String fen){
         Logger.log("GameState", "updateFen", "Произведено обновление игрового состояния. FEN: %s"
                 .formatted(fen));
@@ -97,6 +99,8 @@ public class GameState {
         return aislePos;
     }
 
+
+    //основной класс, отвечающий за движение фигур
     public void move(SessionConnection connection, Position from, Position to) throws GameRuleException, ServerSideException {
         Logger.log("GameState", "move", "Инициировано движение фигуры. ");
         if(from == null || to == null)
@@ -247,8 +251,8 @@ public class GameState {
         //проверка шаха
         check = StepModelManager.isAvailable(figure.getType(), figure.isWhite() ? 0 : 1, to,
                 figure.isWhite() ? Desk.PositionMatcher.getBlackKingPos() : Desk.PositionMatcher.getWhiteKingPos(), this);
-        checkSquaresSnaps.add(squareTo.snapshot());
-        if(!check){ //сохранение шаха при следующих ходах
+        if(check) checkSquaresSnaps.add(squareTo.snapshot());
+        else{ //сохранение шаха при следующих ходах
             List<SquareSnapshot> updatedList = new ArrayList<>();
             for(SquareSnapshot squareSnapshot : checkSquaresSnaps){
                 Desk.Square square = Desk.PositionMatcher.get(squareSnapshot.getPosition());
